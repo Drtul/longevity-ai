@@ -1,0 +1,2875 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LONGEVITY AI — Anti-Aging Health Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep:   #0d2b1e;
+    --green-dark:   #1a4731;
+    --green-mid:    #2d6a4f;
+    --green-main:   #40916c;
+    --green-light:  #52b788;
+    --green-pale:   #b7e4c7;
+    --green-ghost:  #d8f3dc;
+    --cream:        #f8f5ee;
+    --cream-dark:   #ede8df;
+    --ink:          #1a1a1a;
+    --ink-mid:      #4a4a4a;
+    --ink-light:    #8a8a8a;
+    --gold:         #c9a84c;
+    --gold-light:   #f0d080;
+    --warn:         #e07b54;
+    --red-soft:     #f4a261;
+    --white:        #ffffff;
+    --radius:       12px;
+    --shadow:       0 4px 24px rgba(13,43,30,0.12);
+    --shadow-lg:    0 12px 48px rgba(13,43,30,0.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(64,145,108,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(26,71,49,0.06) 0%, transparent 55%),
+      var(--cream);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green-deep);
+    padding: 0 40px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--green-pale);
+    letter-spacing: 0.02em;
+  }
+  .logo span { color: var(--gold); }
+
+  .nav-tabs {
+    display: flex; gap: 4px;
+  }
+  .nav-tab {
+    background: none; border: none; cursor: pointer;
+    padding: 8px 16px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(183,228,199,0.7);
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .nav-tab:hover { background: rgba(255,255,255,0.07); color: var(--green-pale); }
+  .nav-tab.active { background: var(--green-mid); color: var(--white); }
+
+  /* ── MAIN LAYOUT ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── SECTION VISIBILITY ── */
+  .section { display: none; animation: fadeIn 0.35s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ── DASHBOARD ── */
+  .hero {
+    background: var(--green-dark);
+    border-radius: 20px;
+    padding: 40px 48px;
+    margin-bottom: 32px;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .hero::after {
+    content: '🧬';
+    position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+    font-size: 7rem; opacity: 0.12;
+  }
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.15em;
+    color: var(--green-light); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hero-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem; color: var(--white); margin-bottom: 4px;
+  }
+  .hero-sub { font-size: 0.9rem; color: var(--green-pale); opacity: 0.75; }
+
+  .bio-age-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 28px;
+  }
+  .bio-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--cream-dark);
+    position: relative;
+  }
+  .bio-card-label {
+    font-size: 0.75rem; font-weight: 500;
+    color: var(--ink-light); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .bio-card-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem; line-height: 1;
+    color: var(--green-mid);
+  }
+  .bio-card-unit { font-size: 1rem; color: var(--ink-light); }
+  .bio-card.highlight { background: var(--green-dark); border-color: var(--green-mid); }
+  .bio-card.highlight .bio-card-label { color: var(--green-pale); }
+  .bio-card.highlight .bio-card-value { color: var(--green-light); }
+
+  /* Pillars */
+  .pillars-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    margin-bottom: 28px;
+  }
+  .pillar-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    border: 2px solid transparent;
+    cursor: pointer; transition: all 0.25s;
+    text-align: center;
+  }
+  .pillar-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .pillar-card.excellent { border-color: var(--green-light); }
+  .pillar-card.good { border-color: var(--gold); }
+  .pillar-card.poor { border-color: var(--warn); }
+  .pillar-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .pillar-name { font-size: 0.75rem; font-weight: 600; color: var(--ink-mid); margin-bottom: 8px; }
+  .pillar-score-ring {
+    width: 56px; height: 56px; margin: 0 auto 6px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem; font-weight: 600;
+  }
+  .pillar-status { font-size: 0.7rem; color: var(--ink-light); }
+
+  /* Today's Actions */
+  .actions-section { margin-bottom: 28px; }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; color: var(--green-dark);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--cream-dark);
+  }
+  .action-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--green-main);
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .action-badge {
+    background: var(--green-dark); color: var(--gold);
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; font-weight: 600; flex-shrink: 0;
+  }
+  .action-text { flex: 1; font-size: 0.92rem; color: var(--ink); }
+  .action-time { font-size: 0.78rem; color: var(--ink-light); white-space: nowrap; }
+
+  /* Archetype badge */
+  .archetype-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 28px;
+  }
+  .archetype-card {
+    background: var(--green-deep);
+    border-radius: var(--radius);
+    padding: 24px;
+    color: var(--white);
+  }
+  .archetype-tag {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--green-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; font-weight: 600;
+    padding: 4px 12px; border-radius: 99px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .archetype-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem; color: var(--green-pale);
+    margin-bottom: 8px;
+  }
+  .archetype-desc { font-size: 0.85rem; color: rgba(183,228,199,0.7); line-height: 1.6; }
+
+  .longevity-score-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--cream-dark);
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .score-ring-big {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    background: conic-gradient(var(--green-main) var(--pct, 0%), var(--cream-dark) 0%);
+    box-shadow: inset 0 0 0 14px var(--white);
+  }
+  .score-label { font-size: 0.78rem; font-weight: 600; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── ASSESSMENT ── */
+  .assessment-container { max-width: 780px; margin: 0 auto; }
+  .progress-bar-wrap { margin-bottom: 32px; }
+  .progress-steps { display: flex; gap: 8px; margin-bottom: 12px; }
+  .progress-step {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--cream-dark); transition: background 0.3s;
+  }
+  .progress-step.done { background: var(--green-main); }
+  .progress-step.active { background: var(--gold); }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--ink-light);
+    letter-spacing: 0.1em;
+  }
+
+  .q-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px 36px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--cream-dark);
+    margin-bottom: 16px;
+  }
+  .q-pillar-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green-ghost); color: var(--green-dark);
+    padding: 4px 12px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 600; margin-bottom: 20px;
+  }
+  .q-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem; color: var(--green-dark);
+    margin-bottom: 8px; line-height: 1.3;
+  }
+  .q-sub { font-size: 0.875rem; color: var(--ink-light); margin-bottom: 28px; line-height: 1.6; }
+
+  .q-group { margin-bottom: 22px; }
+  .q-label {
+    font-size: 0.875rem; font-weight: 600; color: var(--ink);
+    margin-bottom: 10px; display: block;
+  }
+  .q-hint { font-size: 0.78rem; color: var(--ink-light); margin-top: 4px; }
+
+  /* Number input with slider */
+  .slider-wrap { display: flex; align-items: center; gap: 12px; }
+  .slider-wrap input[type=range] {
+    flex: 1; -webkit-appearance: none; height: 6px;
+    border-radius: 3px; background: var(--cream-dark); outline: none;
+    cursor: pointer;
+  }
+  .slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--green-main);
+    box-shadow: 0 2px 8px rgba(64,145,108,0.4);
+    cursor: pointer;
+  }
+  .slider-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem; font-weight: 600;
+    color: var(--green-mid); min-width: 52px; text-align: right;
+  }
+
+  /* Option buttons */
+  .option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .option-btn {
+    background: var(--cream); border: 2px solid var(--cream-dark);
+    border-radius: 8px; padding: 10px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+    cursor: pointer; transition: all 0.18s; color: var(--ink);
+    font-weight: 500;
+  }
+  .option-btn:hover { border-color: var(--green-light); background: var(--green-ghost); }
+  .option-btn.selected {
+    background: var(--green-dark); border-color: var(--green-dark);
+    color: var(--white);
+  }
+
+  /* Text input */
+  .text-input {
+    width: 100%; padding: 12px 16px;
+    border: 2px solid var(--cream-dark); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    color: var(--ink); background: var(--cream);
+    outline: none; transition: border-color 0.18s;
+  }
+  .text-input:focus { border-color: var(--green-main); background: var(--white); }
+
+  /* Nav buttons */
+  .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; }
+  .btn {
+    padding: 12px 28px; border-radius: 10px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: var(--green-dark); color: var(--white);
+    box-shadow: 0 4px 16px rgba(26,71,49,0.3);
+  }
+  .btn-primary:hover { background: var(--green-mid); transform: translateY(-1px); }
+  .btn-secondary { background: var(--cream-dark); color: var(--ink-mid); }
+  .btn-secondary:hover { background: var(--cream); }
+  .btn-gold {
+    background: var(--gold); color: var(--green-deep);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+    font-size: 1rem; padding: 14px 36px;
+  }
+  .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* ── SCORES SHEET ── */
+  .scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .score-detail-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--cream-dark);
+  }
+  .score-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .score-detail-icon { font-size: 1.8rem; }
+  .score-detail-name { font-weight: 600; font-size: 1rem; color: var(--ink); }
+  .score-bar-wrap { background: var(--cream-dark); border-radius: 4px; height: 8px; margin-bottom: 12px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+  .score-impact {
+    display: flex; justify-content: space-between;
+    font-size: 0.8rem; color: var(--ink-light);
+  }
+  .score-impact strong { color: var(--ink); }
+
+  /* ── SUPPLEMENTS ── */
+  .supp-tier { margin-bottom: 28px; }
+  .tier-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tier-badge {
+    background: var(--green-dark); color: var(--gold);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; padding: 4px 12px; border-radius: 99px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .tier-badge.t2 { background: var(--cream-dark); color: var(--ink-mid); }
+  .tier-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem; color: var(--green-dark);
+  }
+
+  .supp-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 12px; align-items: start;
+    border: 1px solid var(--cream-dark);
+    transition: border-color 0.2s;
+  }
+  .supp-card:hover { border-color: var(--green-pale); }
+  .supp-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+  .supp-reason { font-size: 0.8rem; color: var(--ink-light); line-height: 1.5; }
+  .supp-dose {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: var(--green-mid);
+    font-weight: 600; text-align: right; white-space: nowrap;
+  }
+  .supp-note { font-size: 0.72rem; color: var(--ink-light); margin-top: 2px; text-align: right; }
+
+  .disclaimer {
+    background: #fff5f0; border: 1px solid var(--red-soft);
+    border-radius: var(--radius); padding: 16px 20px;
+    font-size: 0.82rem; color: #8b4513;
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 16px;
+  }
+
+  /* ── ACTION PLAN ── */
+  .weekly-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+    margin-bottom: 28px;
+  }
+  .day-card {
+    background: var(--white); border-radius: 10px;
+    padding: 12px 8px; text-align: center;
+    box-shadow: var(--shadow); border: 1px solid var(--cream-dark);
+    font-size: 0.72rem;
+  }
+  .day-name {
+    font-weight: 700; font-size: 0.78rem;
+    color: var(--green-dark); margin-bottom: 8px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--cream-dark);
+  }
+  .day-pill {
+    background: var(--green-ghost); color: var(--green-dark);
+    border-radius: 6px; padding: 4px 6px; margin-bottom: 4px;
+    font-size: 0.66rem; line-height: 1.3;
+  }
+  .day-pill.exercise { background: #e3f0ff; color: #2b5ea7; }
+  .day-pill.nutrition { background: var(--green-ghost); color: var(--green-dark); }
+  .day-pill.wellness { background: #fef3e2; color: #8b5e1a; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header { padding: 0 16px; }
+    main { padding: 24px 16px 60px; }
+    .hero { padding: 28px 24px; }
+    .bio-age-grid { grid-template-columns: 1fr 1fr; }
+    .pillars-grid { grid-template-columns: repeat(3, 1fr); }
+    .scores-grid { grid-template-columns: 1fr; }
+    .archetype-row { grid-template-columns: 1fr; }
+    .weekly-grid { grid-template-columns: repeat(4, 1fr); }
+    .nav-tab { padding: 6px 10px; font-size: 0.75rem; }
+  }
+
+  /* Loading animation */
+  .calculating {
+    display: none; text-align: center; padding: 60px 20px;
+  }
+  .calculating.show { display: block; }
+  .calc-spinner {
+    width: 48px; height: 48px; border: 3px solid var(--cream-dark);
+    border-top-color: var(--green-main);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  /* ── FASTING MODULE ── */
+  .if-hero {
+    background: linear-gradient(135deg, var(--green-deep) 0%, #0a1f15 100%);
+    border-radius: 20px; padding: 36px 40px; margin-bottom: 28px;
+    position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
+  }
+  .if-hero::before {
+    content: '⏱️';
+    position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+    font-size: 6rem; opacity: 0.1;
+  }
+  .if-hero-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .if-hero-title {
+    font-family: 'DM Serif Display', serif; font-size: 1.8rem;
+    color: var(--white); margin-bottom: 8px;
+  }
+  .if-hero-sub { font-size: 0.88rem; color: var(--green-pale); opacity: 0.8; line-height: 1.7; max-width: 560px; }
+
+  .if-science-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+  }
+  .if-science-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--cream-dark);
+  }
+  .if-science-icon { font-size: 1.6rem; margin-bottom: 10px; }
+  .if-science-title { font-weight: 700; font-size: 0.9rem; color: var(--green-dark); margin-bottom: 6px; }
+  .if-science-text { font-size: 0.8rem; color: var(--ink-mid); line-height: 1.65; }
+  .if-science-ref { font-size: 0.7rem; color: var(--ink-light); margin-top: 8px; font-style: italic; }
+
+  /* Timeline visual */
+  .if-timeline {
+    background: var(--white); border-radius: var(--radius);
+    padding: 28px 32px; box-shadow: var(--shadow);
+    border: 1px solid var(--cream-dark); margin-bottom: 28px;
+  }
+  .timeline-track {
+    position: relative; margin: 24px 0 16px;
+    height: 48px;
+  }
+  .timeline-bar {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    height: 12px; border-radius: 6px; left: 0; right: 0;
+    background: var(--cream-dark);
+  }
+  .timeline-eating {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    height: 12px; border-radius: 6px;
+    background: linear-gradient(90deg, var(--green-light), var(--green-main));
+    transition: width 0.5s;
+  }
+  .timeline-fasting {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    height: 12px; border-radius: 6px;
+    background: linear-gradient(90deg, var(--green-deep), var(--green-dark));
+    transition: left 0.5s, width 0.5s;
+  }
+  .timeline-marker {
+    position: absolute; top: -6px;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .marker-dot {
+    width: 10px; height: 10px; border-radius: 50%; margin-bottom: 4px;
+    border: 2px solid var(--white);
+  }
+  .marker-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: var(--ink-light);
+    white-space: nowrap;
+  }
+  .timeline-milestones {
+    display: flex; gap: 0; margin-top: 20px;
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .milestone-seg {
+    flex: 1; padding: 10px 6px; text-align: center;
+    font-size: 0.7rem; line-height: 1.4; transition: opacity 0.3s;
+  }
+  .milestone-seg .m-hour { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; }
+  .milestone-seg .m-event { color: var(--ink-mid); }
+  .milestone-seg .m-emoji { font-size: 1rem; margin-bottom: 2px; }
+
+  /* Protocol cards */
+  .protocol-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px;
+  }
+  .protocol-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow);
+    border: 2px solid transparent; cursor: pointer; transition: all 0.25s;
+  }
+  .protocol-card:hover { border-color: var(--green-light); transform: translateY(-2px); }
+  .protocol-card.recommended { border-color: var(--gold); }
+  .protocol-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .protocol-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700;
+    color: var(--green-dark); background: var(--green-ghost);
+    padding: 6px 12px; border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+  }
+  .protocol-name { font-weight: 700; font-size: 1rem; color: var(--ink); margin-bottom: 3px; }
+  .protocol-diff { font-size: 0.75rem; color: var(--ink-light); }
+  .protocol-desc { font-size: 0.82rem; color: var(--ink-mid); line-height: 1.65; margin-bottom: 12px; }
+  .protocol-pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pro-con-box { background: var(--cream); border-radius: 8px; padding: 8px 10px; }
+  .pro-con-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .pro-con-list { font-size: 0.75rem; color: var(--ink-mid); line-height: 1.7; }
+  .rec-badge {
+    display: inline-block; background: var(--gold); color: var(--green-deep);
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+
+  /* Timer */
+  .timer-section {
+    background: var(--green-deep); border-radius: 20px;
+    padding: 32px; margin-bottom: 28px; text-align: center; box-shadow: var(--shadow-lg);
+  }
+  .timer-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--green-pale); margin-bottom: 20px; }
+  .timer-select-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .timer-protocol-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: var(--green-pale); border-radius: 8px; padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .timer-protocol-btn:hover, .timer-protocol-btn.active {
+    background: var(--green-mid); border-color: var(--green-light); color: var(--white);
+  }
+  .timer-clock {
+    width: 200px; height: 200px; border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.1);
+    margin: 0 auto 20px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; position: relative;
+  }
+  .timer-clock svg { position: absolute; top: -4px; left: -4px; width: 208px; height: 208px; }
+  .timer-clock-inner { position: relative; z-index: 1; }
+  .timer-time { font-family: 'JetBrains Mono', monospace; font-size: 2.4rem; font-weight: 600; color: var(--white); line-height: 1; }
+  .timer-state { font-size: 0.8rem; color: var(--green-pale); margin-top: 6px; letter-spacing: 0.05em; }
+  .timer-phase { font-size: 0.75rem; color: var(--gold); margin-top: 4px; }
+  .timer-btns { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .timer-btn {
+    padding: 10px 24px; border-radius: 10px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .timer-btn.start { background: var(--green-light); color: var(--green-deep); }
+  .timer-btn.pause { background: var(--gold); color: var(--green-deep); }
+  .timer-btn.reset { background: rgba(255,255,255,0.12); color: var(--green-pale); }
+  .timer-info { font-size: 0.8rem; color: rgba(183,228,199,0.6); }
+
+  /* Tips accordion */
+  .tips-section { margin-bottom: 28px; }
+  .tip-item {
+    background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--cream-dark); margin-bottom: 8px;
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .tip-header {
+    padding: 16px 20px; cursor: pointer; display: flex; align-items: center;
+    gap: 12px; user-select: none; transition: background 0.2s;
+  }
+  .tip-header:hover { background: var(--cream); }
+  .tip-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .tip-question { font-weight: 600; font-size: 0.9rem; flex: 1; }
+  .tip-chevron { font-size: 0.7rem; color: var(--ink-light); transition: transform 0.25s; }
+  .tip-body {
+    padding: 0 20px; max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.25s;
+    font-size: 0.85rem; color: var(--ink-mid); line-height: 1.75;
+  }
+  .tip-body.open { max-height: 600px; padding: 0 20px 18px; }
+  .tip-chevron.open { transform: rotate(180deg); }
+
+  @media (max-width: 768px) {
+    .if-science-grid { grid-template-columns: 1fr 1fr; }
+    .protocol-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+
+<!-- DB Config Bar -->
+<div class="db-config-bar" id="db-config-bar" style="display:none">
+  <span class="db-config-label">🗄️ Google Sheets URL:</span>
+  <input class="db-url-input" id="db-url-input" type="text"
+    placeholder="วาง Apps Script Web App URL ที่นี่...">
+  <button class="db-save-btn" onclick="saveDbUrl()">บันทึก URL</button>
+  <span class="db-status disconnected" id="db-status">● ยังไม่เชื่อมต่อ</span>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Sync FAB -->
+<button class="sync-fab" id="sync-fab" onclick="manualSync()" title="Sync ข้อมูลไป Google Sheets">
+  ☁️
+</button>
+
+<header>
+  <div class="logo">LONGEVITY<span>AI</span></div>
+  <div id="db-status-header" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--green-pale);opacity:0.7;display:flex;align-items:center;gap:6px;">
+    <span id="db-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block;"></span>
+    <span id="db-status-text">Connecting...</span>
+  </div>
+  <button class="ai-tab-btn" onclick="openAI('analyze')">🧬 AI Coach</button>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('dashboard')">🏠 Dashboard</button>
+    <button class="nav-tab" onclick="showSection('assessment');populateReturningUserSelect();">📋 Assessment</button>
+    <button class="nav-tab" onclick="showSection('scores')">📊 Scores</button>
+    <button class="nav-tab" onclick="showSection('fasting')">⏱️ Fasting</button>
+    <button class="nav-tab" onclick="showSection('supplements')">💊 Supplements</button>
+    <button class="nav-tab" onclick="showSection('action')">📅 Action Plan</button>
+    <button class="nav-tab" onclick="showSection('history')">📈 History</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div id="dashboard" class="section active">
+
+  <div class="hero">
+    <div class="hero-label">Preventive Anti-Aging Protocol</div>
+    <div class="hero-name" id="hero-name">สวัสดีครับ — ยินดีต้อนรับ</div>
+    <div class="hero-sub" id="hero-sub">เริ่มต้นด้วยการทำ Assessment เพื่อดู Biological Age ของคุณ</div>
+  </div>
+
+  <div class="bio-age-grid">
+    <div class="bio-card">
+      <div class="bio-card-label">Chronological Age</div>
+      <div class="bio-card-value" id="d-chron">—<span class="bio-card-unit"> ปี</span></div>
+    </div>
+    <div class="bio-card highlight">
+      <div class="bio-card-label">Biological Age (ประมาณ)</div>
+      <div class="bio-card-value" id="d-bio">—<span class="bio-card-unit"> ปี</span></div>
+    </div>
+    <div class="bio-card">
+      <div class="bio-card-label">ผลต่าง</div>
+      <div class="bio-card-value" id="d-diff">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">🏛️ 5 Pillars Status</div>
+  <div class="pillars-grid" id="pillars-grid">
+    <!-- Rendered by JS -->
+  </div>
+
+  <div class="archetype-row">
+    <div class="archetype-card">
+      <div class="archetype-tag" id="d-arch-tag">กรุณาทำ Assessment</div>
+      <div class="archetype-name" id="d-arch-name">Eating Archetype</div>
+      <div class="archetype-desc" id="d-arch-desc">ทำ Assessment เพื่อรับ Archetype และแผนโภชนาการที่เหมาะกับคุณ</div>
+    </div>
+    <div class="longevity-score-card">
+      <div class="score-ring-big" id="score-ring" style="--pct:0%">
+        <span id="d-score-val">—</span>
+      </div>
+      <div class="score-label">Longevity Score</div>
+    </div>
+  </div>
+
+  <div class="section-title">✅ Today's 3 Priority Actions</div>
+  <div id="actions-container">
+    <div class="action-card">
+      <div class="action-badge">?</div>
+      <div class="action-text">ทำ Assessment ก่อนเพื่อรับ Action Plan ที่ Personalized</div>
+      <div class="action-time">—</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn btn-gold" onclick="showSection('assessment')">
+      🚀 เริ่มต้น Assessment →
+    </button>
+    <button class="btn btn-primary" onclick="openAI('analyze')" id="ai-analyze-btn" style="display:none">
+      🧬 วิเคราะห์ด้วย AI →
+    </button>
+  </div>
+
+  <!-- NotebookLM Knowledge Base Card -->
+  <div style="background:linear-gradient(135deg,var(--green-dark),var(--green-deep));border-radius:16px;padding:24px 28px;margin-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;box-shadow:var(--shadow-lg);">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--gold);letter-spacing:0.12em;margin-bottom:6px;">📓 LONGEVITY KNOWLEDGE BASE</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--green-pale);margin-bottom:4px;">Powered by NotebookLM</div>
+      <div style="font-size:0.8rem;color:rgba(183,228,199,0.6);">Sinclair · Attia · Blackburn · López-Otín · Mattson + งานวิจัยล่าสุด</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="openNotebookDirect()" style="background:var(--green-main);border:none;color:var(--white);padding:10px 18px;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        📓 เปิด Knowledge Base
+      </button>
+      <button onclick="openAI('chat');setPBProvider('notebooklm',document.querySelectorAll('.pb-provider-btn')[4]);" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);color:var(--gold);padding:10px 18px;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        🧬 ถามด้วย AI Prompt
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ASSESSMENT ═══════════════ -->
+<div id="assessment" class="section">
+  <div class="assessment-container">
+
+    <div class="progress-bar-wrap">
+      <div class="progress-steps" id="progress-steps">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      <div class="progress-label" id="progress-label">STEP 1 of 6 — ข้อมูลส่วนตัว</div>
+    </div>
+
+    <!-- RETURNING USER SELECTOR -->
+    <div id="returning-user-card" class="q-card" style="margin-bottom:12px;">
+      <div class="q-pillar-badge">🔄 ผู้ใช้เดิม</div>
+      <div class="q-title" style="font-size:1.2rem;">ประเมินซ้ำหรือใช้ครั้งแรก?</div>
+      <div class="q-sub">ถ้าเคยประเมินมาแล้ว เลือกชื่อเดิมเพื่อโหลดข้อมูลและเริ่มประเมินวันใหม่</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+        <div>
+          <label class="q-label" style="margin-bottom:8px;display:block;">👤 ผู้ใช้เดิม — เลือกชื่อ</label>
+          <select id="returning-user-select"
+            style="width:100%;padding:10px 14px;border:2px solid var(--cream-dark);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;background:var(--cream);color:var(--ink);outline:none;"
+            onchange="loadReturningUser(this.value)">
+            <option value="">— เลือกชื่อ —</option>
+          </select>
+          <div style="font-size:0.75rem;color:var(--ink-light);margin-top:6px;" id="returning-user-info"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+          <label class="q-label" style="margin-bottom:8px;display:block;">✨ ผู้ใช้ใหม่</label>
+          <button class="btn btn-secondary" style="width:100%;padding:10px;" onclick="clearReturningUser()">
+            + เริ่มใหม่ (ผู้ใช้ใหม่)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Personal -->
+    <div id="step-1" class="q-card">
+      <div class="q-pillar-badge">👤 Personal Info</div>
+      <div class="q-title">ข้อมูลส่วนตัวเบื้องต้น</div>
+      <div class="q-sub">ข้อมูลพื้นฐานสำหรับการคำนวณ Biological Age และ BMI</div>
+
+      <div class="q-group">
+        <label class="q-label">ชื่อของคุณ</label>
+        <input class="text-input" id="q-name" type="text" placeholder="กรอกชื่อ..." value="">
+      </div>
+      <div class="q-group">
+        <label class="q-label">อายุ (ปี)</label>
+        <div class="slider-wrap">
+          <input type="range" min="20" max="80" value="40" id="q-age" oninput="updateSlider('q-age','d-age')">
+          <div class="slider-val" id="d-age">40 ปี</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">เพศ</label>
+        <div class="option-group">
+          <button class="option-btn selected" onclick="selectOption(this,'gender')">ชาย</button>
+          <button class="option-btn" onclick="selectOption(this,'gender')">หญิง</button>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">น้ำหนัก (กก.)</label>
+        <div class="slider-wrap">
+          <input type="range" min="40" max="130" value="70" id="q-weight" oninput="updateSlider('q-weight','d-weight')">
+          <div class="slider-val" id="d-weight">70 กก.</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ส่วนสูง (ซม.)</label>
+        <div class="slider-wrap">
+          <input type="range" min="140" max="200" value="170" id="q-height" oninput="updateSlider('q-height','d-height')">
+          <div class="slider-val" id="d-height">170 ซม.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Sleep -->
+    <div id="step-2" class="q-card" style="display:none">
+      <div class="q-pillar-badge">😴 Pillar 1 — Sleep</div>
+      <div class="q-title">การนอนหลับ</div>
+      <div class="q-sub">Sleep เป็น Pillar ที่ให้ ROI สูงที่สุด — การนอนน้อยเพียงคืนเดียวเพิ่ม Amyloid beta ในสมอง 5–10%</div>
+
+      <div class="q-group">
+        <label class="q-label">จำนวนชั่วโมงนอนเฉลี่ย/คืน</label>
+        <div class="slider-wrap">
+          <input type="range" min="3" max="11" step="0.5" value="7" id="q-sleep-hrs" oninput="updateSlider('q-sleep-hrs','d-sleep-hrs','ชั่วโมง')">
+          <div class="slider-val" id="d-sleep-hrs">7 ชั่วโมง</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: 7–8 ชั่วโมง/คืน</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">คุณภาพการนอน (1=แย่มาก → 10=ดีมาก)</label>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="10" value="7" id="q-sleep-qual" oninput="updateSlider('q-sleep-qual','d-sleep-qual','/10')">
+          <div class="slider-val" id="d-sleep-qual">7/10</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">เข้านอนและตื่นเวลาเดิมสม่ำเสมอ?</label>
+        <div class="option-group">
+          <button class="option-btn" onclick="selectOption(this,'sleep-consist')">เสมอ</button>
+          <button class="option-btn selected" onclick="selectOption(this,'sleep-consist')">บางครั้ง</button>
+          <button class="option-btn" onclick="selectOption(this,'sleep-consist')">ไม่ค่อย</button>
+          <button class="option-btn" onclick="selectOption(this,'sleep-consist')">ไม่เลย</button>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ใช้หน้าจอ (โทรศัพท์/TV) ก่อนนอน?</label>
+        <div class="option-group">
+          <button class="option-btn" onclick="selectOption(this,'screen')">ไม่เลย</button>
+          <button class="option-btn selected" onclick="selectOption(this,'screen')">บางครั้ง</button>
+          <button class="option-btn" onclick="selectOption(this,'screen')">เป็นประจำ</button>
+          <button class="option-btn" onclick="selectOption(this,'screen')">ทุกคืน</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Exercise -->
+    <div id="step-3" class="q-card" style="display:none">
+      <div class="q-pillar-badge">🏃 Pillar 2 — Exercise</div>
+      <div class="q-title">การออกกำลังกาย</div>
+      <div class="q-sub">Peter Attia เรียกการออกกำลังกายว่า "the most potent longevity drug ever discovered" — VO2 Max ทำนาย Longevity ได้ดีที่สุด</div>
+
+      <div class="q-group">
+        <label class="q-label">Cardio / Zone 2 (นาที/สัปดาห์)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="400" step="15" value="120" id="q-cardio" oninput="updateSlider('q-cardio','d-cardio','นาที')">
+          <div class="slider-val" id="d-cardio">120 นาที</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: 150+ นาที/สัปดาห์</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">Resistance Training (ครั้ง/สัปดาห์)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="7" value="2" id="q-resist" oninput="updateSlider('q-resist','d-resist','ครั้ง')">
+          <div class="slider-val" id="d-resist">2 ครั้ง</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: 2–3 ครั้ง/สัปดาห์</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ระดับความหนักของ Cardio</label>
+        <div class="option-group">
+          <button class="option-btn" onclick="selectOption(this,'cardio-intensity')">เบา</button>
+          <button class="option-btn selected" onclick="selectOption(this,'cardio-intensity')">ปานกลาง (Zone 2)</button>
+          <button class="option-btn" onclick="selectOption(this,'cardio-intensity')">หนักมาก</button>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">เดิน/เคลื่อนไหวต่อวัน (นาที)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="120" step="5" value="20" id="q-walk" oninput="updateSlider('q-walk','d-walk','นาที')">
+          <div class="slider-val" id="d-walk">20 นาที</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Nutrition -->
+    <div id="step-4" class="q-card" style="display:none">
+      <div class="q-pillar-badge">🥗 Pillar 3 — Nutrition</div>
+      <div class="q-title">โภชนาการ</div>
+      <div class="q-sub">Methylation foods, Anti-inflammatory diet และ Time-restricted eating เป็น 3 กลยุทธ์หลักในการชะลอ Epigenetic aging</div>
+
+      <div class="q-group">
+        <label class="q-label">ผัก/ผลไม้ที่กินต่อวัน (ส่วน)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="10" value="3" id="q-veg" oninput="updateSlider('q-veg','d-veg','ส่วน')">
+          <div class="slider-val" id="d-veg">3 ส่วน</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: 5+ ส่วน/วัน — 1 ส่วน = 1 กำมือ</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">อาหารแปรรูป/Fast food (ครั้ง/สัปดาห์)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="21" value="3" id="q-junk" oninput="updateSlider('q-junk','d-junk','ครั้ง')">
+          <div class="slider-val" id="d-junk">3 ครั้ง</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: น้อยกว่า 2 ครั้ง/สัปดาห์</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ดื่มน้ำเปล่า (ลิตร/วัน)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0.5" max="4" step="0.25" value="1.5" id="q-water" oninput="updateSlider('q-water','d-water','L')">
+          <div class="slider-val" id="d-water">1.5 L</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ทำ Intermittent Fasting?</label>
+        <div class="option-group">
+          <button class="option-btn" onclick="selectOption(this,'fasting')">ไม่เลย</button>
+          <button class="option-btn selected" onclick="selectOption(this,'fasting')">บางครั้ง</button>
+          <button class="option-btn" onclick="selectOption(this,'fasting')">สม่ำเสมอ</button>
+          <button class="option-btn" onclick="selectOption(this,'fasting')">ทุกวัน (16:8)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: Stress -->
+    <div id="step-5" class="q-card" style="display:none">
+      <div class="q-pillar-badge">🧘 Pillar 4 — Stress</div>
+      <div class="q-title">การจัดการความเครียด</div>
+      <div class="q-sub">Chronic cortisol สูงยับยั้ง DNMT activity โดยตรง — ส่งเสริม Demethylation ทั่วร่างกายและเร่ง Telomere shortening</div>
+
+      <div class="q-group">
+        <label class="q-label">ระดับความเครียดเฉลี่ย (1=ไม่เครียด → 10=เครียดมาก)</label>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="10" value="6" id="q-stress" oninput="updateSlider('q-stress','d-stress','/10')">
+          <div class="slider-val" id="d-stress">6/10</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ทำสมาธิ/Mindfulness (นาที/วัน)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="60" step="5" value="5" id="q-meditate" oninput="updateSlider('q-meditate','d-meditate','นาที')">
+          <div class="slider-val" id="d-meditate">5 นาที</div>
+        </div>
+        <div class="q-hint">เป้าหมาย: 10+ นาที/วัน</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">กิจกรรม Social/พบปะผู้คน (ครั้ง/สัปดาห์)</label>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="14" value="2" id="q-social" oninput="updateSlider('q-social','d-social','ครั้ง')">
+          <div class="slider-val" id="d-social">2 ครั้ง</div>
+        </div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">คุณรู้สึกมี Purpose / ความหมายในชีวิต?</label>
+        <div class="option-group">
+          <button class="option-btn selected" onclick="selectOption(this,'purpose')">ใช่ ชัดเจนมาก</button>
+          <button class="option-btn" onclick="selectOption(this,'purpose')">บางส่วน</button>
+          <button class="option-btn" onclick="selectOption(this,'purpose')">ไม่แน่ใจ</button>
+          <button class="option-btn" onclick="selectOption(this,'purpose')">ยังหาไม่เจอ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6: Biomarkers -->
+    <div id="step-6" class="q-card" style="display:none">
+      <div class="q-pillar-badge">🔬 Pillar 5 — Biomarkers</div>
+      <div class="q-title">ผลเลือดและ Lab Markers</div>
+      <div class="q-sub">Biomarkers คือ Objective data ที่แม่นยำที่สุดในการประเมิน Biological aging — ถ้าไม่มีผลเลือดล่าสุด ใช้ค่า Default ได้</div>
+
+      <div class="q-group">
+        <label class="q-label">HbA1c (%)</label>
+        <div class="slider-wrap">
+          <input type="range" min="4" max="9" step="0.1" value="5.5" id="q-hba1c" oninput="updateSlider('q-hba1c','d-hba1c','%')">
+          <div class="slider-val" id="d-hba1c">5.5%</div>
+        </div>
+        <div class="q-hint">ปกติ: &lt;5.7% | Pre-diabetes: 5.7–6.4% | Diabetes: ≥6.5%</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">Vitamin D (ng/mL)</label>
+        <div class="slider-wrap">
+          <input type="range" min="5" max="100" step="5" value="35" id="q-vitd" oninput="updateSlider('q-vitd','d-vitd','ng/mL')">
+          <div class="slider-val" id="d-vitd">35 ng/mL</div>
+        </div>
+        <div class="q-hint">Optimal: 40–60 ng/mL | Deficient: &lt;20</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">Fasting Glucose (mg/dL)</label>
+        <div class="slider-wrap">
+          <input type="range" min="60" max="150" step="5" value="90" id="q-glucose" oninput="updateSlider('q-glucose','d-glucose','mg/dL')">
+          <div class="slider-val" id="d-glucose">90 mg/dL</div>
+        </div>
+        <div class="q-hint">ปกติ: &lt;100 | Pre-diabetes: 100–125</div>
+      </div>
+      <div class="q-group">
+        <label class="q-label">ตรวจสุขภาพประจำปี?</label>
+        <div class="option-group">
+          <button class="option-btn selected" onclick="selectOption(this,'checkup')">ใช่ สม่ำเสมอ</button>
+          <button class="option-btn" onclick="selectOption(this,'checkup')">บางปี</button>
+          <button class="option-btn" onclick="selectOption(this,'checkup')">ไม่ค่อยได้ทำ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="q-nav" id="q-nav">
+      <button class="btn btn-secondary" id="btn-prev" onclick="prevStep()" style="visibility:hidden">← ย้อนกลับ</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">ถัดไป →</button>
+    </div>
+
+    <!-- Calculating screen -->
+    <div class="calculating" id="calculating">
+      <div class="calc-spinner"></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--green-dark);margin-bottom:8px;">กำลังวิเคราะห์...</div>
+      <div style="font-size:0.875rem;color:var(--ink-light);">คำนวณ Biological Age และ Personalized Protocol</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SCORES ═══════════════ -->
+<div id="scores" class="section">
+  <div class="section-title">📊 Pillar Score Analysis</div>
+  <div class="scores-grid" id="scores-grid">
+    <!-- Rendered by JS -->
+  </div>
+  <div style="background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--cream-dark);">
+    <div class="section-title" style="margin-bottom:16px;">🎯 Priority Focus Areas</div>
+    <div id="priority-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ SUPPLEMENTS ═══════════════ -->
+<div id="supplements" class="section">
+  <div class="section-title">💊 Personalized Supplement Stack</div>
+  <div id="supp-archetype-note" style="background:var(--green-ghost);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;font-size:0.9rem;color:var(--green-dark);"></div>
+
+  <div class="supp-tier">
+    <div class="tier-header">
+      <span class="tier-badge">Tier 1</span>
+      <span class="tier-title">Universal Foundation — แนะนำสำหรับทุกคน</span>
+    </div>
+    <div id="tier1-supps"></div>
+  </div>
+
+  <div class="supp-tier">
+    <div class="tier-header">
+      <span class="tier-badge t2">Tier 2</span>
+      <span class="tier-title">Targeted Optimization — ตาม Score และ Archetype</span>
+    </div>
+    <div id="tier2-supps"></div>
+  </div>
+
+  <div class="disclaimer">
+    <span style="font-size:1.2rem">⚠️</span>
+    <span>คำเตือนสำคัญ: ข้อมูลนี้เป็นเพียงการให้ความรู้เพื่อประกอบการตัดสินใจ ไม่ใช่คำแนะนำทางการแพทย์ กรุณาปรึกษาแพทย์หรือเภสัชกรก่อนเริ่มใช้อาหารเสริมทุกครั้ง โดยเฉพาะผู้ที่มีโรคประจำตัวหรือรับประทานยาอยู่</span>
+  </div>
+</div>
+
+<!-- ═══════════════ ACTION PLAN ═══════════════ -->
+<div id="action" class="section">
+  <div class="section-title">📅 Personalized Action Plan</div>
+
+  <div class="section-title" style="font-size:1.1rem;">✅ Today's 3 Priority Actions</div>
+  <div id="action-today" style="margin-bottom:28px;"></div>
+
+  <div class="section-title" style="font-size:1.1rem;">📆 Weekly Protocol</div>
+  <div class="weekly-grid" id="weekly-grid"></div>
+
+  <div style="background:var(--green-deep);border-radius:var(--radius);padding:24px 28px;color:var(--green-pale);">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:8px;color:var(--gold);">💡 หลักการสำคัญที่สุด</div>
+    <div style="font-size:0.9rem;line-height:1.8;">
+      <strong style="color:var(--white);">Consistency beats Perfection</strong> — การทำ 70–80% อย่างสม่ำเสมอ ให้ผลดีกว่า 100% เป็นครั้งคราวอย่างมีนัยสำคัญ<br>
+      ตั้งเป้าหมาย <strong style="color:var(--white);">Small wins ทุกวัน</strong> — ไม่ใช่การเปลี่ยนแปลงครั้งใหญ่
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FASTING (IF) ═══════════════ -->
+<div id="fasting" class="section">
+
+  <div class="if-hero">
+    <div class="if-hero-label">Longevity Protocol — Intermittent Fasting</div>
+    <div class="if-hero-title">การอดอาหารเป็นช่วงเวลา (IF)</div>
+    <div class="if-hero-sub">หนึ่งใน Longevity interventions ที่มีหลักฐานทางวิทยาศาสตร์แข็งแกร่งที่สุด — ออกแบบมาให้ทำได้ในชีวิตจริงโดยไม่ต้องนับแคลอรี่หรือเปลี่ยนอาหารที่กิน</div>
+  </div>
+
+  <!-- Science Cards -->
+  <div class="section-title">🔬 หลักการทางวิทยาศาสตร์</div>
+  <div class="if-science-grid">
+    <div class="if-science-card">
+      <div class="if-science-icon">♻️</div>
+      <div class="if-science-title">Autophagy — การกวาดล้างเซลล์</div>
+      <div class="if-science-text">หลังอดอาหาร 12–16 ชั่วโมง ร่างกายเข้าสู่กระบวนการ <strong>Autophagy</strong> — เซลล์กำจัด Damaged proteins, Dysfunctional organelles และ Misfolded proteins ออก เปรียบเหมือน "โรงงานรีไซเคิล" ของเซลล์ที่ช่วยป้องกัน Alzheimer's และ Parkinson's</div>
+      <div class="if-science-ref">Yoshinori Ohsumi รับ Nobel Prize 2016 จากการค้นพบ Autophagy mechanism</div>
+    </div>
+    <div class="if-science-card">
+      <div class="if-science-icon">🔋</div>
+      <div class="if-science-title">Metabolic Switch — พลังงานจากไขมัน</div>
+      <div class="if-science-text">ปกติร่างกายเผาผลาญ <strong>Glucose</strong> เป็นพลังงาน เมื่ออดอาหาร 12–16 ชั่วโมง ร่างกาย Switch ไปใช้ <strong>Ketone bodies จากไขมัน</strong> แทน — Ketones เป็น "Super fuel" สำหรับสมอง ลด Inflammation และกระตุ้น BDNF (Brain-derived neurotrophic factor)</div>
+      <div class="if-science-ref">Mattson et al. (2018) NEJM — Intermittent metabolic switching</div>
+    </div>
+    <div class="if-science-card">
+      <div class="if-science-icon">🧬</div>
+      <div class="if-science-title">Epigenetic Benefits</div>
+      <div class="if-science-text">IF กระตุ้น <strong>SIRT1 (Sirtuin-1)</strong> — เอนไซม์ที่รักษา Chromatin stability และช่วย DNMT ทำงานได้ดีขึ้น ลดการสูญเสีย Methylation ที่เกิดจาก Oxidative stress ยังกระตุ้น <strong>AMPK</strong> ซึ่งยับยั้ง mTOR — pathway หลักของ Cellular aging</div>
+      <div class="if-science-ref">Longo & Mattson (2014) Cell Metabolism — Fasting: Molecular mechanisms</div>
+    </div>
+    <div class="if-science-card">
+      <div class="if-science-icon">❤️</div>
+      <div class="if-science-title">Cardiovascular & Metabolic</div>
+      <div class="if-science-text">งานวิจัยแสดงว่า IF ลด <strong>Insulin resistance, Triglycerides, LDL cholesterol</strong> และ Blood pressure อย่างมีนัยสำคัญ ลด Inflammation markers (IL-6, TNF-α, CRP) ที่เป็น Driver หลักของ Inflammaging</div>
+      <div class="if-science-ref">Wilkinson et al. (2020) Cell Metabolism — TRE in metabolic syndrome</div>
+    </div>
+    <div class="if-science-card">
+      <div class="if-science-icon">🧠</div>
+      <div class="if-science-title">Brain & Cognitive Health</div>
+      <div class="if-science-text">IF เพิ่ม <strong>BDNF</strong> ในสมอง 50–400% — กระตุ้น Neurogenesis และ Synaptic plasticity ลดการสะสมของ Amyloid-beta ช่วยกำจัด Misfolded proteins ผ่าน Autophagy ก่อนที่จะสะสมเป็น Plaques</div>
+      <div class="if-science-ref">Mattson (2019) Nature Reviews Neuroscience</div>
+    </div>
+    <div class="if-science-card">
+      <div class="if-science-icon">⚖️</div>
+      <div class="if-science-title">Body Composition</div>
+      <div class="if-science-text">IF รักษา <strong>Lean muscle mass</strong> ได้ดีกว่า Continuous caloric restriction เพราะ Growth hormone เพิ่มสูงขึ้นในช่วง Fasting (ป้องกัน Muscle breakdown) ขณะที่ Insulin ต่ำช่วยให้เผาผลาญ Visceral fat โดยเฉพาะ</div>
+      <div class="if-science-ref">Tinsley & La Bounty (2015) Nutrition Reviews</div>
+    </div>
+  </div>
+
+  <!-- What Happens Timeline -->
+  <div class="if-timeline">
+    <div class="section-title" style="margin-bottom:8px;">⏰ เกิดอะไรขึ้นในร่างกายตามเวลา</div>
+    <div style="font-size:0.82rem;color:var(--ink-light);margin-bottom:16px;">นับจากมื้ออาหารสุดท้าย</div>
+
+    <div style="overflow-x:auto;">
+      <div style="min-width:600px;">
+        <div class="timeline-milestones">
+          <div class="milestone-seg" style="background:#f0fdf4;border-right:1px solid #e0ede5;">
+            <div class="m-emoji">🍽️</div>
+            <div class="m-hour">0 ชม.</div>
+            <div class="m-event">กินมื้อสุดท้าย</div>
+          </div>
+          <div class="milestone-seg" style="background:#e8f5e9;border-right:1px solid #e0ede5;">
+            <div class="m-emoji">📉</div>
+            <div class="m-hour">2–4 ชม.</div>
+            <div class="m-event">Insulin เริ่มลดลง</div>
+          </div>
+          <div class="milestone-seg" style="background:#d4edda;border-right:1px solid #c3e6cb;">
+            <div class="m-emoji">🔥</div>
+            <div class="m-hour">8–10 ชม.</div>
+            <div class="m-event">Glycogen หมด เริ่มเผา Fat</div>
+          </div>
+          <div class="milestone-seg" style="background:#b8dfc8;border-right:1px solid #a0d4b8;">
+            <div class="m-emoji">♻️</div>
+            <div class="m-hour">12 ชม.</div>
+            <div class="m-event">Autophagy เริ่มต้น</div>
+          </div>
+          <div class="milestone-seg" style="background:#95cfaf;border-right:1px solid #78c49a;">
+            <div class="m-emoji">⚡</div>
+            <div class="m-hour">14–16 ชม.</div>
+            <div class="m-event">Ketosis, BDNF เพิ่ม</div>
+          </div>
+          <div class="milestone-seg" style="background:#6dbf94;border-right:1px solid #52b788;">
+            <div class="m-emoji">🧬</div>
+            <div class="m-hour">18–24 ชม.</div>
+            <div class="m-event">Autophagy Peak, SIRT1 สูงสุด</div>
+          </div>
+          <div class="milestone-seg" style="background:#40916c;">
+            <div class="m-emoji" style="filter:brightness(2)">🌟</div>
+            <div class="m-hour" style="color:#d8f3dc;">24–72 ชม.</div>
+            <div class="m-event" style="color:#b7e4c7;">Stem cell activation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding:12px 16px;background:var(--green-ghost);border-radius:8px;font-size:0.82rem;color:var(--green-dark);">
+      💡 <strong>Sweet spot สำหรับคนทั่วไป:</strong> 14–16 ชั่วโมง คือจุดที่ได้ประโยชน์สูงสุดเทียบกับความยากในการทำ — Autophagy เพิ่งเริ่มทำงานเต็มที่ และ Ketone levels เพียงพอสำหรับ Brain benefits
+    </div>
+  </div>
+
+  <!-- IF Protocols -->
+  <div class="section-title">📋 โปรโตคอล IF ที่นิยม — เลือกตามไลฟ์สไตล์</div>
+  <div class="protocol-grid">
+
+    <div class="protocol-card recommended">
+      <div class="rec-badge">⭐ แนะนำสำหรับมือใหม่</div>
+      <div class="protocol-header">
+        <div class="protocol-badge">16:8</div>
+        <div>
+          <div class="protocol-name">Time-Restricted Eating (TRE)</div>
+          <div class="protocol-diff">อด 16 ชม. | กิน 8 ชม.</div>
+        </div>
+      </div>
+      <div class="protocol-desc">โปรโตคอลที่ได้รับการศึกษามากที่สุด เหมาะสำหรับทุกคน ทำทุกวันหรือ 4–5 วัน/สัปดาห์ก็ได้ ตัวอย่าง: กินมื้อแรก 10:00 น. มื้อสุดท้าย 18:00 น. (ไม่กินหลัง 18:00)</div>
+      <div class="protocol-pros-cons">
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--green-dark)">✅ ข้อดี</div>
+          <div class="pro-con-list">• ยืดหยุ่นสูง<br>• ทำทุกวันได้<br>• ไม่รู้สึกหิวมาก<br>• นอนหลับคือส่วนหนึ่งของการอด</div>
+        </div>
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--warn)">⚠️ ข้อระวัง</div>
+          <div class="pro-con-list">• อาจต้องปรับเวลาสังคม<br>• มื้อเช้ากับครอบครัวอาจต้องปรับ<br>• 1–2 สัปดาห์แรกอาจหิว</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="protocol-card">
+      <div class="protocol-header">
+        <div class="protocol-badge">18:6</div>
+        <div>
+          <div class="protocol-name">Extended TRE</div>
+          <div class="protocol-diff">อด 18 ชม. | กิน 6 ชม.</div>
+        </div>
+      </div>
+      <div class="protocol-desc">เหมาะสำหรับผู้ที่ทำ 16:8 ได้คล่องแล้ว ประโยชน์ Autophagy และ Ketosis ชัดเจนขึ้น ตัวอย่าง: กินมื้อแรก 12:00 น. มื้อสุดท้าย 18:00 น. (งดอาหารเช้า + งดอาหารหลัง 18:00)</div>
+      <div class="protocol-pros-cons">
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--green-dark)">✅ ข้อดี</div>
+          <div class="pro-con-list">• Autophagy ชัดเจนกว่า 16:8<br>• Fat adaptation เร็วขึ้น<br>• Mental clarity สูง</div>
+        </div>
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--warn)">⚠️ ข้อระวัง</div>
+          <div class="pro-con-list">• กินให้ครบโปรตีน ภายใน 6 ชม.<br>• ไม่แนะนำทุกวัน (4–5 วัน/สัปดาห์)<br>• ต้องปรับตัวก่อน</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="protocol-card">
+      <div class="protocol-header">
+        <div class="protocol-badge">5:2</div>
+        <div>
+          <div class="protocol-name">Modified Fasting Diet</div>
+          <div class="protocol-diff">กินปกติ 5 วัน | จำกัด 500 kcal 2 วัน</div>
+        </div>
+      </div>
+      <div class="protocol-desc">กิน 2 วัน/สัปดาห์แบบจำกัดแคลอรี่มาก (500–600 kcal) และกินปกติ 5 วัน เหมาะสำหรับผู้ที่ไม่สะดวกทำ Daily TRE แต่มีวินัยในการเลือก 2 วัน/สัปดาห์</div>
+      <div class="protocol-pros-cons">
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--green-dark)">✅ ข้อดี</div>
+          <div class="pro-con-list">• ยืดหยุ่นเลือกวันได้<br>• 5 วันกินปกติ<br>• หลักฐานวิจัยแน่น</div>
+        </div>
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--warn)">⚠️ ข้อระวัง</div>
+          <div class="pro-con-list">• ต้องนับแคลอรี่ 2 วัน<br>• อาจหิวมากในวัน Fasting<br>• ไม่เหมาะผู้ออกกำลังกายหนัก</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="protocol-card">
+      <div class="protocol-header">
+        <div class="protocol-badge" style="font-size:0.85rem;">OMAD</div>
+        <div>
+          <div class="protocol-name">One Meal A Day</div>
+          <div class="protocol-diff">อด 22–23 ชม. | กิน 1–2 ชม.</div>
+        </div>
+      </div>
+      <div class="protocol-desc">กิน 1 มื้อใหญ่ต่อวัน ภายในช่วงเวลา 1–2 ชั่วโมง เหมาะสำหรับผู้ที่ทำ IF ขั้นสูงแล้ว และต้องการผล Autophagy สูงสุด <strong>ไม่แนะนำเป็น Starting point</strong></div>
+      <div class="protocol-pros-cons">
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--green-dark)">✅ ข้อดี</div>
+          <div class="pro-con-list">• Autophagy สูงสุด<br>• ประหยัดเวลาเตรียมอาหาร<br>• Insulin ต่ำนานที่สุด</div>
+        </div>
+        <div class="pro-con-box">
+          <div class="pro-con-title" style="color:var(--warn)">⚠️ ข้อระวัง</div>
+          <div class="pro-con-list">• กินโปรตีนให้ครบมาก<br>• ไม่เหมาะสำหรับทุกคน<br>• ต้องปรึกษาแพทย์ก่อน</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Fasting Log — Meal Time Input -->
+  <div class="timer-section">
+    <div class="timer-title">🍽️ บันทึกเวลาอาหาร — คำนวณช่วง Fasting อัตโนมัติ</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:0.78rem;color:var(--green-pale);margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;">🌅 มื้อแรกของวัน (Break Fast)</div>
+        <input type="time" id="meal-first" value="10:00"
+          style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.1);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:1.3rem;outline:none;text-align:center;"
+          oninput="calcFastingWindow()">
+        <div style="font-size:0.72rem;color:rgba(183,228,199,0.5);margin-top:6px;text-align:center;">เวลาที่เริ่มกินมื้อแรก</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:var(--green-pale);margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;">🌆 มื้อสุดท้ายของวัน</div>
+        <input type="time" id="meal-last" value="18:00"
+          style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.1);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:1.3rem;outline:none;text-align:center;"
+          oninput="calcFastingWindow()">
+        <div style="font-size:0.72rem;color:rgba(183,228,199,0.5);margin-top:6px;text-align:center;">เวลาที่กินมื้อสุดท้าย</div>
+      </div>
+    </div>
+
+    <!-- Result display -->
+    <div id="fasting-result" style="display:none;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px;">EATING WINDOW</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--green-light);" id="eating-window-val">8h</div>
+          <div style="font-size:0.7rem;color:rgba(183,228,199,0.6);">ช่วงกิน</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px;">FASTING WINDOW</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--green-light);" id="fasting-window-val">16h</div>
+          <div style="font-size:0.7rem;color:rgba(183,228,199,0.6);">ช่วงอด</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px;">PROTOCOL</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--green-light);" id="fasting-protocol-val">16:8</div>
+          <div style="font-size:0.7rem;color:rgba(183,228,199,0.6);">โปรโตคอล</div>
+        </div>
+      </div>
+
+      <!-- Milestone reached -->
+      <div id="fasting-milestone-card" style="background:rgba(82,183,136,0.15);border:1px solid rgba(82,183,136,0.3);border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:0.75rem;color:var(--gold);font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;margin-bottom:6px;">✨ BENEFITS ที่ได้รับ</div>
+        <div id="fasting-benefits-text" style="font-size:0.85rem;color:var(--green-pale);line-height:1.7;"></div>
+      </div>
+
+      <!-- Score bar -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:rgba(183,228,199,0.6);margin-bottom:6px;">
+          <span>IF Score</span><span id="if-score-text">0/100</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:4px;height:8px;">
+          <div id="if-score-bar" style="height:100%;border-radius:4px;background:var(--green-light);transition:width 0.5s;width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="calcFastingWindow()" class="timer-btn start">🔄 คำนวณ</button>
+      <button onclick="saveFastingEntry()" class="timer-btn start" style="background:var(--gold);color:var(--green-deep);">💾 บันทึกวันนี้</button>
+    </div>
+    <div style="font-size:0.75rem;color:rgba(183,228,199,0.4);text-align:center;margin-top:10px;" id="fasting-save-status"></div>
+
+    <!-- AI Coach -->
+    <div class="fasting-ai-card" id="fasting-ai-card">
+      <div class="coach-label">🤖 AI Fasting Coach</div>
+      <div id="fasting-ai-text">กรอกเวลาด้านบนแล้วกด "คำนวณ" เพื่อรับ Insight</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button onclick="openAI('fasting')" style="background:var(--green-mid);border:none;color:var(--white);padding:7px 14px;border-radius:7px;font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;">💬 AI Coach</button>
+        <button onclick="setPBProvider('notebooklm',document.querySelector('.pb-provider-btn'));openAI('fasting');" style="background:rgba(201,168,76,0.2);border:1px solid rgba(201,168,76,0.4);color:var(--gold);padding:7px 14px;border-radius:7px;font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;">📓 Ask Knowledge Base</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practical Guide -->
+  <div class="section-title">🍽️ วิธีเริ่มต้นทำ 16:8 แบบง่ายที่สุด</div>
+
+  <div style="background:var(--white);border-radius:var(--radius);padding:24px 28px;box-shadow:var(--shadow);border:1px solid var(--cream-dark);margin-bottom:20px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--green-dark);margin-bottom:16px;">📅 ตัวอย่าง Schedule ที่ทำได้จริงในชีวิตคนทำงาน</div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+      <div style="background:var(--cream);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:1.4rem;margin-bottom:6px;">🌅</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green-dark);font-size:1rem;">07:00 – 10:00</div>
+        <div style="font-size:0.8rem;font-weight:600;color:var(--ink);margin:4px 0;">ช่วงอด (ต่อเนื่องจากนอน)</div>
+        <div style="font-size:0.75rem;color:var(--ink-light);">ดื่มน้ำ กาแฟดำ หรือชาไม่มีน้ำตาล ได้ปกติ</div>
+      </div>
+      <div style="background:var(--green-ghost);border-radius:10px;padding:14px;text-align:center;border:2px solid var(--green-light);">
+        <div style="font-size:1.4rem;margin-bottom:6px;">🍳</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green-dark);font-size:1rem;">10:00 น.</div>
+        <div style="font-size:0.8rem;font-weight:600;color:var(--ink);margin:4px 0;">มื้อแรก (Break Fast)</div>
+        <div style="font-size:0.75rem;color:var(--ink-light);">โปรตีนสูง + ผัก เช่น ไข่ + สลัด</div>
+      </div>
+      <div style="background:var(--cream);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:1.4rem;margin-bottom:6px;">🌆</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--green-dark);font-size:1rem;">18:00 น.</div>
+        <div style="font-size:0.8rem;font-weight:600;color:var(--ink);margin:4px 0;">มื้อสุดท้าย</div>
+        <div style="font-size:0.75rem;color:var(--ink-light);">หลังนี้ดื่มได้แต่น้ำ/ชา/กาแฟดำ</div>
+      </div>
+    </div>
+
+    <div style="background:var(--green-ghost);border-radius:8px;padding:12px 16px;font-size:0.82rem;color:var(--green-dark);">
+      ⏰ <strong>เหตุผลที่ดีที่สุด:</strong> นอนหลับ 7–8 ชม. คือส่วนหนึ่งของช่วงอดอยู่แล้ว (22:00–06:00) — แค่เลื่อนมื้อแรกออกไป 3–4 ชั่วโมง ก็ได้ครบ 16 ชั่วโมงโดยไม่รู้สึกหิวมาก
+    </div>
+  </div>
+
+  <!-- FAQ Accordion -->
+  <div class="section-title">❓ คำถามที่พบบ่อย</div>
+  <div class="tips-section">
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">☕</span>
+        <span class="tip-question">ดื่มกาแฟดำหรือชาระหว่าง Fasting ได้ไหม?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>ได้ครับ</strong> — กาแฟดำ, ชาเขียว, ชาดำ, น้ำอัดลมที่ไม่มีน้ำตาล และน้ำเปล่า <strong>ไม่นับว่าทำลาย Fasting</strong> เนื่องจากไม่กระตุ้น Insulin response อย่างมีนัยสำคัญ<br><br>
+        <strong>สิ่งที่ทำลาย Fasting:</strong> นม, น้ำตาล, ครีมเทียม, น้ำผลไม้, Bulletproof coffee (มีไขมัน), อาหารทุกชนิด<br><br>
+        <strong>ข้อควรระวัง:</strong> กาแฟดำในตอนเช้าขณะท้องว่างอาจกระตุ้น Cortisol ในบางคน — ถ้ารู้สึก Jittery หรือวิตกกังวล ลองเปลี่ยนเป็นชาเขียวแทน
+      </div>
+    </div>
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">💊</span>
+        <span class="tip-question">กินยาหรืออาหารเสริมระหว่าง Fasting ได้ไหม?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>ยา:</strong> ยาที่แพทย์สั่งให้กินพร้อมอาหาร ต้องกินพร้อมอาหารเสมอ — ไม่ควรงดยาเพื่อทำ IF โดยไม่ปรึกษาแพทย์ก่อน<br><br>
+        <strong>อาหารเสริม:</strong><br>
+        • <strong>Magnesium, Zinc</strong> — ควรกินพร้อมอาหารเพราะอาจระคายเคืองกระเพาะ<br>
+        • <strong>Omega-3, Vitamin D</strong> — กินพร้อมอาหารที่มีไขมันเพื่อดูดซึมดีที่สุด<br>
+        • <strong>Electrolytes (โซเดียม, โพแทสเซียม)</strong> — กินระหว่าง Fasting ได้ไม่กระทบ Insulin<br>
+        • <strong>Creatine, B-Complex</strong> — กินพร้อมมื้ออาหารแรกของวัน
+      </div>
+    </div>
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">🏋️</span>
+        <span class="tip-question">ออกกำลังกายระหว่าง Fasting ได้ไหม? ควรออกก่อนหรือหลังกิน?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>ออกกำลังกายขณะอด (Fasted training):</strong> เพิ่ม Fat oxidation 20–30% และ Autophagy มากกว่าออกหลังกิน เหมาะกับ Zone 2 Cardio และ Light resistance training<br><br>
+        <strong>แนะนำสำหรับแต่ละประเภท:</strong><br>
+        • <strong>Zone 2 Cardio (เดิน วิ่ง ปั่นจักรยาน):</strong> ออกขณะอดได้ดีมาก — เพิ่ม Fat burning สูงสุด<br>
+        • <strong>Resistance Training หนัก:</strong> ควรกินโปรตีน 1–2 ชั่วโมงก่อน หรือทำหลังมื้อแรก<br>
+        • <strong>HIIT:</strong> ทำได้ขณะอด แต่อาจรู้สึก Lightheaded ในคนที่เพิ่งเริ่ม<br><br>
+        <strong>สำคัญที่สุด:</strong> หลังออกกำลังกาย กินโปรตีน 30–40g ภายใน 30–60 นาที เพื่อ Muscle protein synthesis
+      </div>
+    </div>
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">😰</span>
+        <span class="tip-question">หิวมากระหว่าง Fasting ทำอย่างไร?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>ความหิวในช่วง 1–2 สัปดาห์แรกเป็นเรื่องปกติ</strong> — ร่างกายกำลัง Re-program Hunger hormones (Ghrelin) ซึ่งจะดีขึ้นมากหลังสัปดาห์ที่ 2<br><br>
+        <strong>วิธีจัดการความหิว:</strong><br>
+        • <strong>ดื่มน้ำ 250–500ml:</strong> ความหิวและความกระหายมีสัญญาณที่คล้ายกันมาก — ดื่มน้ำก่อนเสมอ<br>
+        • <strong>กาแฟดำหรือชาเขียว:</strong> ลด Ghrelin ได้ชั่วคราว<br>
+        • <strong>เปลี่ยนกิจกรรม:</strong> ความหิวส่วนใหญ่หายไปใน 15–20 นาที — ลุกไปทำอะไรอื่น<br>
+        • <strong>Electrolytes:</strong> น้ำผสมเกลือเล็กน้อยและโพแทสเซียมช่วยลดความหิวและป้องกัน Lightheadedness<br><br>
+        <strong>ถ้าหิวมากผิดปกติ:</strong> เช็คว่ามื้ออาหารมีโปรตีนและไขมันดีเพียงพอหรือไม่ — คนที่กิน Low-fat, High-carb จะหิวระหว่าง Fastingมากกว่า
+      </div>
+    </div>
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">🚫</span>
+        <span class="tip-question">ใครที่ไม่ควรทำ IF?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>ไม่แนะนำสำหรับ:</strong><br>
+        • ผู้ตั้งครรภ์หรือให้นมบุตร<br>
+        • ผู้ที่มีประวัติ Eating disorder<br>
+        • ผู้ป่วยเบาหวานชนิดที่ 1 หรือกินยาลดน้ำตาล — ต้องปรึกษาแพทย์ก่อน<br>
+        • ผู้ที่น้ำหนักต่ำกว่าเกณฑ์ (BMI &lt;18.5)<br>
+        • เด็กและวัยรุ่น (อายุต่ำกว่า 18 ปี)<br>
+        • ผู้ที่กินยาที่ต้องกินพร้อมอาหารหลายมื้อ<br><br>
+        <strong>ควรปรึกษาแพทย์ก่อน:</strong><br>
+        • ผู้ป่วยโรคเรื้อรัง (ไต, ตับ, หัวใจ)<br>
+        • ผู้ที่ออกกำลังกายระดับ Elite athlete<br>
+        • ผู้สูงอายุที่มีความเสี่ยง Sarcopenia<br><br>
+        <strong>สำหรับคนส่วนใหญ่:</strong> 16:8 เป็น Protocol ที่ปลอดภัยมากและมีหลักฐานรองรับดีที่สุด
+      </div>
+    </div>
+
+    <div class="tip-item">
+      <div class="tip-header" onclick="toggleTip(this)">
+        <span class="tip-icon">📈</span>
+        <span class="tip-question">ควรกินอะไรในช่วง Eating window เพื่อ Maximize ผลลัพธ์?</span>
+        <span class="tip-chevron">▼</span>
+      </div>
+      <div class="tip-body">
+        <strong>Priority ใน 8 ชั่วโมง (สำหรับ 16:8):</strong><br><br>
+        <strong>1. โปรตีนมาก่อน (30–40g/มื้อ)</strong><br>
+        ไข่, ปลา, ไก่, เต้าหู้, Greek yogurt — ช่วยรักษา Muscle mass ระหว่าง Fasting และเพิ่มความอิ่มนาน<br><br>
+        <strong>2. ไขมันดี (Healthy fats)</strong><br>
+        Olive oil, Avocado, ถั่ว — Slow-digesting ช่วยให้ Insulin ไม่พุ่งสูง และ Extend ความอิ่ม<br><br>
+        <strong>3. ผักใบเขียวและ Fiber</strong><br>
+        ช่วย Gut microbiome, ลด Inflammation, เป็น Prebiotic สำหรับ Short-chain fatty acids<br><br>
+        <strong>4. หลีกเลี่ยง:</strong><br>
+        น้ำตาลและ Refined carbs หลังจาก Fasting — Insulin spike สูงมาก ล้มล้างประโยชน์ของ Fasting ส่วนหนึ่ง<br><br>
+        <strong>5. Methylation foods:</strong> ไข่แดง, ผักใบเขียว, บีทรูท, ถั่ว — เพิ่มประสิทธิภาพ Epigenetic benefits ของ IF
+      </div>
+    </div>
+
+  </div>
+
+  <div class="disclaimer">
+    <span style="font-size:1.2rem">⚠️</span>
+    <span>Intermittent Fasting เป็นวิธีที่ปลอดภัยสำหรับคนส่วนใหญ่ แต่ควรปรึกษาแพทย์ก่อนเริ่มหากมีโรคประจำตัวหรือกินยาอยู่ ข้อมูลนี้เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำทางการแพทย์</span>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════ HISTORY ═══════════════ -->
+<div id="history" class="section">
+
+  <div class="section-title">📈 ประวัติและ Progress Tracking</div>
+
+  <div class="stat-row" id="history-stats">
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="hist-sessions">0</div>
+      <div class="stat-mini-label">Assessment ครั้ง</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="hist-best-score">—</div>
+      <div class="stat-mini-label">Best Score</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="hist-fasting-count">0</div>
+      <div class="stat-mini-label">Fasting Sessions</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="hist-bio-trend">—</div>
+      <div class="stat-mini-label">Bio Age Trend</div>
+    </div>
+  </div>
+
+  <div style="background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--green-dark);">📋 Assessment History</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" style="font-size:0.8rem;padding:8px 14px;" onclick="loadHistory()">🔄 โหลดจาก Sheets</button>
+        <button class="btn btn-secondary" style="font-size:0.8rem;padding:8px 14px;" onclick="exportLocalCSV()">⬇️ Export CSV</button>
+      </div>
+    </div>
+    <div id="assessment-history-table">
+      <div class="history-empty">
+        <div style="font-size:2rem;margin-bottom:8px;">📊</div>
+        ยังไม่มีข้อมูล — ทำ Assessment แล้วกด Sync<br>
+        <span style="font-size:0.8rem;">หรือตั้งค่า Google Sheets URL ด้านบนก่อน</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--green-dark);margin-bottom:16px;">⏱️ Fasting Log</div>
+    <div id="fasting-history-table">
+      <div class="history-empty">
+        <div style="font-size:2rem;margin-bottom:8px;">⏱️</div>
+        ยังไม่มี Fasting logs — ใช้ Timer แล้วกด Sync
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--green-ghost);border-radius:var(--radius);padding:20px;font-size:0.85rem;color:var(--green-dark);line-height:1.8;">
+    <strong>📌 ข้อมูลที่เก็บใน Google Sheets:</strong><br>
+    • <strong>Sheet "Assessments"</strong> — วันที่, ชื่อ, อายุ, เพศ, BMI, คะแนนแต่ละ Pillar, Biological Age, Archetype<br>
+    • <strong>Sheet "Fasting_Logs"</strong> — วันที่, Protocol, ระยะเวลาจริง, Milestone ที่ถึง<br>
+    • <strong>Sheet "Weekly_Tracking"</strong> — บันทึกรายสัปดาห์สำหรับ Trend analysis<br>
+    • <strong>Sheet "Users"</strong> — รายชื่อ Users (anonymized) สำหรับ Multi-user tracking
+  </div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const state = {
+  currentStep: 1,
+  totalSteps: 6,
+  assessed: false,
+  data: {
+    name: '', age: 40, gender: 'ชาย', weight: 70, height: 170,
+    sleepHrs: 7, sleepQual: 7, sleepConsist: 'บางครั้ง', screen: 'บางครั้ง',
+    cardio: 120, resist: 2, cardioIntensity: 'ปานกลาง (Zone 2)', walk: 20,
+    veg: 3, junk: 3, water: 1.5, fasting: 'บางครั้ง',
+    stress: 6, meditate: 5, social: 2, purpose: 'ใช่ ชัดเจนมาก',
+    hba1c: 5.5, vitd: 35, glucose: 90, checkup: 'ใช่ สม่ำเสมอ',
+  },
+  scores: { sleep: 0, exercise: 0, nutrition: 0, stress: 0, biomarkers: 0 },
+  bioAge: 0,
+  archetype: '',
+};
+
+const selections = {};
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['dashboard','assessment','scores','fasting','supplements','action','history'];
+  const tabEls = document.querySelectorAll('.nav-tab');
+  tabEls[tabs.indexOf(id)].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════
+// FASTING TIMER
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// FASTING WINDOW CALCULATOR
+// ═══════════════════════════════════════════════════════
+// Keep these stubs so AI context references don't break
+let timerTarget = 16;
+let timerRunning = false;
+let timerElapsed = 0;
+
+const fastingBenefits = [
+  { minH: 0,  text: '🍽️ เพิ่งเริ่มต้น — ยังอยู่ในช่วงย่อยอาหาร Insulin ยังสูงอยู่' },
+  { minH: 4,  text: '📉 Insulin เริ่มลดลง — ร่างกายเริ่มใช้ Glycogen สะสม' },
+  { minH: 8,  text: '🔥 Glycogen ใกล้หมด — ร่างกายเริ่ม Switch ไปเผาผลาญไขมัน' },
+  { minH: 12, text: '♻️ Autophagy เริ่มต้น! — เซลล์เริ่มกำจัด Damaged proteins ออก' },
+  { minH: 14, text: '⚡ Ketosis เต็มที่ — BDNF เพิ่มขึ้น สมองทำงานได้ดีขึ้น' },
+  { minH: 16, text: '🧬 SIRT1 & Epigenetic protection สูงสุด — ผล Anti-aging ชัดเจนมาก' },
+  { minH: 18, text: '🌟 Autophagy Peak — Deep cellular repair กำลังทำงานเต็มที่' },
+  { minH: 20, text: '🔬 Growth Hormone เพิ่มสูง — Muscle preservation และ Fat burning สูงสุด' },
+  { minH: 24, text: '💎 Stem cell activation — Cellular regeneration ระดับสูงสุด' },
+];
+
+function calcFastingWindow() {
+  const firstMeal = document.getElementById('meal-first').value;
+  const lastMeal  = document.getElementById('meal-last').value;
+  if (!firstMeal || !lastMeal) return;
+
+  const [fh, fm] = firstMeal.split(':').map(Number);
+  const [lh, lm] = lastMeal.split(':').map(Number);
+
+  const firstMins = fh * 60 + fm;
+  let   lastMins  = lh * 60 + lm;
+
+  // If last meal is before first meal — assume it's next day
+  if (lastMins <= firstMins) lastMins += 24 * 60;
+
+  const eatingMins  = lastMins - firstMins;
+  const fastingMins = 24 * 60 - eatingMins;
+
+  const eatingH  = Math.floor(eatingMins / 60);
+  const eatingM  = eatingMins % 60;
+  const fastingH = Math.floor(fastingMins / 60);
+  const fastingM = fastingMins % 60;
+
+  const eatingStr  = eatingM  > 0 ? `${eatingH}h ${eatingM}m`  : `${eatingH}h`;
+  const fastingStr = fastingM > 0 ? `${fastingH}h ${fastingM}m` : `${fastingH}h`;
+  const protocol   = `${fastingH}:${eatingH}`;
+
+  document.getElementById('eating-window-val').textContent  = eatingStr;
+  document.getElementById('fasting-window-val').textContent = fastingStr;
+  document.getElementById('fasting-protocol-val').textContent = protocol;
+  document.getElementById('fasting-result').style.display = 'block';
+
+  // IF Score (0-100)
+  let ifScore = 0;
+  if (fastingH >= 12) ifScore = 40;
+  if (fastingH >= 14) ifScore = 60;
+  if (fastingH >= 16) ifScore = 80;
+  if (fastingH >= 18) ifScore = 90;
+  if (fastingH >= 20) ifScore = 100;
+  if (fastingH < 10)  ifScore = Math.round(fastingH / 10 * 30);
+
+  document.getElementById('if-score-bar').style.width  = ifScore + '%';
+  document.getElementById('if-score-text').textContent = ifScore + '/100';
+
+  // Benefits text
+  let benefit = fastingBenefits[0];
+  for (const b of fastingBenefits) {
+    if (fastingH >= b.minH) benefit = b;
+  }
+  document.getElementById('fasting-benefits-text').textContent = benefit.text;
+
+  // Save to state for AI context
+  timerTarget  = fastingH;
+  timerElapsed = fastingMins * 60;
+
+  // Update AI context
+  document.getElementById('fasting-ai-text').textContent =
+    `Protocol ${protocol} — อดอาหาร ${fastingStr} ต่อวัน ${benefit.text.split('—')[0]}`;
+
+  return { fastingH, eatingH, ifScore, protocol, firstMeal, lastMeal };
+}
+
+function saveFastingEntry() {
+  const result = calcFastingWindow();
+  if (!result) { showToast('กรุณากรอกเวลาก่อนครับ', 'error'); return; }
+  const { fastingH, eatingH, ifScore, protocol, firstMeal, lastMeal } = result;
+  const reached = fastingBenefits.filter(b => fastingH >= b.minH).map(b => b.minH + 'h').join(',');
+  saveFastingLog(fastingH, fastingH * 3600, reached);
+  document.getElementById('fasting-save-status').textContent =
+    `✅ บันทึกแล้ว: ${new Date().toLocaleDateString('th-TH')} — ${protocol} IF Score: ${ifScore}/100`;
+  showToast('💾 บันทึก Fasting log แล้วครับ', 'success');
+}
+
+// Stubs to prevent errors from old references
+function setTimerProtocol(h, btn) { timerTarget = h; }
+function timerToggle() {}
+function timerReset() { document.getElementById('fasting-save-status').textContent = ''; }
+function updateTimerDisplay() {}
+
+// ═══════════════════════════════════════════════════════
+// RETURNING USER — Load existing user data
+// ═══════════════════════════════════════════════════════
+function populateReturningUserSelect() {
+  const select = document.getElementById('returning-user-select');
+  if (!select) return;
+  // Get unique names from local assessments, sorted by last active
+  const seen = {};
+  const users = [];
+  for (const r of [...localAssessments].reverse()) {
+    if (r.name && !seen[r.name]) {
+      seen[r.name] = true;
+      users.push({ name: r.name, date: r.date, score: r.avg_score, bioAge: r.biological_age });
+    }
+  }
+  select.innerHTML = '<option value="">— เลือกชื่อ —</option>';
+  users.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.name;
+    opt.textContent = `${u.name}  (ล่าสุด: ${u.date})`;
+    select.appendChild(opt);
+  });
+}
+
+function loadReturningUser(name) {
+  if (!name) { clearReturningUser(); return; }
+  // Find most recent assessment for this name
+  const prev = [...localAssessments].reverse().find(r => r.name === name);
+  if (!prev) return;
+
+  // Pre-fill Step 1 fields with previous data
+  document.getElementById('q-name').value = prev.name || '';
+  if (prev.age) {
+    document.getElementById('q-age').value = prev.age;
+    document.getElementById('d-age').textContent = prev.age + ' ปี';
+    state.data.age = Number(prev.age);
+  }
+  if (prev.weight) {
+    document.getElementById('q-weight').value = prev.weight;
+    document.getElementById('d-weight').textContent = prev.weight + ' กก.';
+    state.data.weight = Number(prev.weight);
+  }
+  if (prev.height) {
+    document.getElementById('q-height').value = prev.height;
+    document.getElementById('d-height').textContent = prev.height + ' ซม.';
+    state.data.height = Number(prev.height);
+  }
+  // Gender
+  if (prev.gender) {
+    state.data.gender = prev.gender;
+    document.querySelectorAll('.option-group .option-btn').forEach(btn => {
+      if (btn.textContent.trim() === prev.gender) {
+        btn.closest('.option-group')?.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      }
+    });
+  }
+  state.data.name = prev.name;
+
+  // Show info
+  const info = document.getElementById('returning-user-info');
+  if (info) {
+    const sessCount = localAssessments.filter(r => r.name === name).length;
+    info.innerHTML = `✅ โหลดข้อมูลแล้ว — ${sessCount} session | Score ล่าสุด: <strong>${prev.avg_score}/100</strong> | Bio Age: <strong>${prev.biological_age} ปี</strong>`;
+    info.style.color = 'var(--green-mid)';
+  }
+  showToast(`✅ โหลดข้อมูลของ ${name} แล้ว — กรอกคำตอบใหม่ได้เลยครับ`, 'success');
+}
+
+function clearReturningUser() {
+  document.getElementById('q-name').value = '';
+  document.getElementById('returning-user-select').value = '';
+  const info = document.getElementById('returning-user-info');
+  if (info) { info.textContent = ''; }
+  // Reset sliders to defaults
+  document.getElementById('q-age').value = 40;
+  document.getElementById('d-age').textContent = '40 ปี';
+  document.getElementById('q-weight').value = 70;
+  document.getElementById('d-weight').textContent = '70 กก.';
+  document.getElementById('q-height').value = 170;
+  document.getElementById('d-height').textContent = '170 ซม.';
+}
+
+function updateTimerDisplay(totalSecs) {
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = Math.floor(totalSecs % 60);
+  document.getElementById('timer-display').textContent =
+    String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+  // Progress ring
+  const targetSecs = timerTarget * 3600;
+  const pct = Math.min(totalSecs / targetSecs, 1);
+  const circumference = 616;
+  const offset = circumference - pct * circumference;
+  document.getElementById('timer-progress-circle').style.strokeDashoffset = offset;
+
+  // Color based on progress
+  const color = pct >= 1 ? '#f0d080' : pct >= 0.75 ? '#52b788' : '#40916c';
+  document.getElementById('timer-progress-circle').style.stroke = color;
+
+  // Milestones
+  const hrs = totalSecs / 3600;
+  let currentMilestone = null;
+  for (const m of milestones) {
+    if (hrs >= m.h) currentMilestone = m;
+  }
+  if (currentMilestone) {
+    document.getElementById('timer-milestone-msg').textContent = currentMilestone.msg;
+  }
+
+  // Next milestone
+  const nextM = milestones.find(m => hrs < m.h);
+  if (nextM && pct < 1) {
+    const remaining = nextM.h * 3600 - totalSecs;
+    const rh = Math.floor(remaining / 3600);
+    const rm = Math.floor((remaining % 3600) / 60);
+    document.getElementById('timer-state').textContent = `อีก ${rh}ชม. ${rm}นาที ถึง: ${nextM.msg.split('—')[0]}`;
+  } else if (pct >= 1) {
+    document.getElementById('timer-state').textContent = `🎉 ครบ ${timerTarget} ชั่วโมงแล้ว!`;
+    document.getElementById('timer-milestone-msg').textContent = '🌟 ยอดเยี่ยมมาก! คุณทำ IF ได้ครบเป้าหมาย';
+    if (timerRunning && !window._fastingSaved) {
+      window._fastingSaved = true;
+      const reached = milestones.filter(m => totalSecs/3600 >= m.h).map(m => m.h + 'h').join(',');
+      saveFastingLog(timerTarget, totalSecs, reached);
+      showToast('⏱️ Fasting log บันทึกแล้ว!', 'success');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// FAQ ACCORDION
+// ═══════════════════════════════════════════════════════
+function toggleTip(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.tip-chevron');
+  const isOpen = body.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.tip-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.tip-chevron').forEach(c => c.classList.remove('open'));
+  // Open this one if was closed
+  if (!isOpen) {
+    body.classList.add('open');
+    chevron.classList.add('open');
+  }
+}
+
+function updateSlider(inputId, displayId, unit='') {
+  const val = document.getElementById(inputId).value;
+  document.getElementById(displayId).textContent = val + (unit ? ' ' + unit : '');
+  const key = {
+    'q-age':'age','q-weight':'weight','q-height':'height',
+    'q-sleep-hrs':'sleepHrs','q-sleep-qual':'sleepQual',
+    'q-cardio':'cardio','q-resist':'resist','q-walk':'walk',
+    'q-veg':'veg','q-junk':'junk','q-water':'water',
+    'q-stress':'stress','q-meditate':'meditate','q-social':'social',
+    'q-hba1c':'hba1c','q-vitd':'vitd','q-glucose':'glucose',
+  }[inputId];
+  if (key) state.data[key] = parseFloat(val);
+}
+
+function selectOption(btn, group) {
+  btn.closest('.option-group').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selections[group] = btn.textContent.trim();
+  const map = {
+    'gender':'gender','sleep-consist':'sleepConsist','screen':'screen',
+    'cardio-intensity':'cardioIntensity','fasting':'fasting',
+    'purpose':'purpose','checkup':'checkup',
+  };
+  if (map[group]) state.data[map[group]] = btn.textContent.trim();
+}
+
+// ═══════════════════════════════════════════════════════
+// ASSESSMENT NAVIGATION
+// ═══════════════════════════════════════════════════════
+function nextStep() {
+  if (state.currentStep === 1) {
+    state.data.name = document.getElementById('q-name').value || 'คุณ';
+  }
+
+  if (state.currentStep < state.totalSteps) {
+    document.getElementById('step-' + state.currentStep).style.display = 'none';
+    state.currentStep++;
+    document.getElementById('step-' + state.currentStep).style.display = 'block';
+    updateProgress();
+    document.getElementById('btn-prev').style.visibility = 'visible';
+    if (state.currentStep === state.totalSteps) {
+      document.getElementById('btn-next').textContent = '✓ คำนวณผล';
+    }
+  } else {
+    runCalculation();
+  }
+}
+
+function prevStep() {
+  if (state.currentStep > 1) {
+    document.getElementById('step-' + state.currentStep).style.display = 'none';
+    state.currentStep--;
+    document.getElementById('step-' + state.currentStep).style.display = 'block';
+    updateProgress();
+    document.getElementById('btn-next').textContent = 'ถัดไป →';
+    if (state.currentStep === 1) document.getElementById('btn-prev').style.visibility = 'hidden';
+  }
+}
+
+function updateProgress() {
+  const steps = document.querySelectorAll('.progress-step');
+  steps.forEach((s, i) => {
+    s.className = 'progress-step';
+    if (i < state.currentStep - 1) s.classList.add('done');
+    else if (i === state.currentStep - 1) s.classList.add('active');
+  });
+  const labels = ['ข้อมูลส่วนตัว','การนอนหลับ','การออกกำลังกาย','โภชนาการ','ความเครียด','Biomarkers'];
+  document.getElementById('progress-label').textContent = `STEP ${state.currentStep} of ${state.totalSteps} — ${labels[state.currentStep-1]}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// SCORING ENGINE
+// ═══════════════════════════════════════════════════════
+function calcScores() {
+  const d = state.data;
+
+  // Sleep (0-100)
+  let sleep = 0;
+  sleep += Math.min(d.sleepHrs * 10, 40);
+  if (d.sleepHrs >= 7 && d.sleepHrs <= 9) sleep += 10;
+  sleep += d.sleepQual * 3;
+  sleep += {'เสมอ':20,'บางครั้ง':12,'ไม่ค่อย':5,'ไม่เลย':0}[d.sleepConsist] || 12;
+  sleep += {'ไม่เลย':8,'บางครั้ง':4,'เป็นประจำ':0,'ทุกคืน':-4}[d.screen] || 4;
+  state.scores.sleep = Math.min(100, Math.max(0, Math.round(sleep)));
+
+  // Exercise (0-100)
+  let ex = 0;
+  ex += Math.min(d.cardio / 150 * 35, 35);
+  ex += Math.min(d.resist / 3 * 20, 20);
+  ex += {'เบา':10,'ปานกลาง (Zone 2)':20,'หนักมาก':25}[d.cardioIntensity] || 20;
+  ex += Math.min(d.walk / 30 * 20, 20);
+  state.scores.exercise = Math.min(100, Math.max(0, Math.round(ex)));
+
+  // Nutrition (0-100)
+  let nut = 0;
+  nut += Math.min(d.veg / 5 * 30, 30);
+  nut += Math.max(0, 30 - d.junk * 4);
+  nut += Math.min(d.water / 2 * 20, 20);
+  nut += {'ไม่เลย':0,'บางครั้ง':8,'สม่ำเสมอ':15,'ทุกวัน (16:8)':20}[d.fasting] || 8;
+  state.scores.nutrition = Math.min(100, Math.max(0, Math.round(nut)));
+
+  // Stress (0-100)
+  let str = 0;
+  str += (10 - d.stress) * 7;
+  str += Math.min(d.meditate / 10 * 25, 25);
+  str += Math.min(d.social / 3 * 20, 20);
+  str += {'ใช่ ชัดเจนมาก':20,'บางส่วน':12,'ไม่แน่ใจ':6,'ยังหาไม่เจอ':0}[d.purpose] || 12;
+  state.scores.stress = Math.min(100, Math.max(0, Math.round(str)));
+
+  // Biomarkers (0-100)
+  let bio = 0;
+  bio += d.hba1c < 5.7 ? 30 : d.hba1c < 6.0 ? 20 : d.hba1c < 6.5 ? 10 : 0;
+  bio += d.vitd >= 40 ? 30 : d.vitd >= 30 ? 20 : d.vitd >= 20 ? 12 : 5;
+  bio += d.glucose < 100 ? 30 : d.glucose < 110 ? 20 : d.glucose < 126 ? 10 : 0;
+  bio += {'ใช่ สม่ำเสมอ':10,'บางปี':6,'ไม่ค่อยได้ทำ':0}[d.checkup] || 6;
+  state.scores.biomarkers = Math.min(100, Math.max(0, Math.round(bio)));
+}
+
+function calcBioAge() {
+  const avg = Object.values(state.scores).reduce((a,b) => a+b, 0) / 5;
+  state.bioAge = Math.round((state.data.age + (50 - avg) / 8) * 10) / 10;
+}
+
+function calcArchetype() {
+  const d = state.data;
+  if (d.veg >= 5 && d.junk <= 2 && state.scores.nutrition >= 70) {
+    state.archetype = { tag:'🟢 Optimizer', name:'The Optimizer', desc:'คุณดูแลสุขภาพได้ดีมาก มีความรู้และ Motivation สูง เหมาะกับ Food-first approach และ Advanced protocol เช่น Elimination diet หรือ Fasting mimicking diet' };
+  } else if (state.scores.nutrition >= 50 && d.veg >= 3) {
+    state.archetype = { tag:'🔵 Conscious', name:'The Conscious Eater', desc:'คุณพยายามกินดีแต่ยังมีพื้นที่พัฒนา แนะนำ Habit stacking — เพิ่ม Longevity foods ทีละ 1–2 อย่างต่อเดือน และ Supplement Tier 1 เพื่อเติมช่องว่าง' };
+  } else if (d.junk >= 5 || d.veg <= 2) {
+    state.archetype = { tag:'🟡 Busy Pro', name:'The Busy Professional', desc:'ไลฟ์สไตล์ทำให้ดูแลโภชนาการยาก แนะนำ Supplement-forward approach เป็นหลักก่อน ควบคู่กับกลยุทธ์ "Best available choice" เมื่อกินนอกบ้าน' };
+  } else {
+    state.archetype = { tag:'🟠 Starter', name:'The Starter', desc:'เพิ่งเริ่มต้นดูแลสุขภาพ — เริ่มด้วย 3 อาหารเสริมพื้นฐาน (Omega-3, Vit D, Magnesium) และ Micro-change ทีละ 1 อย่าง/สัปดาห์ ไม่ต้องเปลี่ยนทุกอย่างพร้อมกัน' };
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════
+function renderDashboard() {
+  const d = state.data;
+  const s = state.scores;
+  const diff = Math.round((state.bioAge - d.age) * 10) / 10;
+  const avg = Math.round(Object.values(s).reduce((a,b) => a+b, 0) / 5);
+
+  document.getElementById('hero-name').textContent = `สวัสดีครับ คุณ${d.name}`;
+  document.getElementById('hero-sub').textContent = `${d.gender} | อายุ ${d.age} ปี | BMI ${Math.round(d.weight / (d.height/100)**2 * 10)/10}`;
+
+  document.getElementById('d-chron').innerHTML = `${d.age}<span class="bio-card-unit"> ปี</span>`;
+  document.getElementById('d-bio').innerHTML = `${state.bioAge}<span class="bio-card-unit"> ปี</span>`;
+
+  const diffText = diff > 0 ? `+${diff} ปี 📈` : diff < 0 ? `${diff} ปี 🌟` : `0 ปี ✅`;
+  const diffColor = diff > 2 ? 'var(--warn)' : diff < -1 ? 'var(--green-main)' : 'var(--gold)';
+  document.getElementById('d-diff').innerHTML = `<span style="color:${diffColor};font-size:2rem;">${diffText}</span>`;
+
+  // Pillar cards
+  const pillars = [
+    { icon:'😴', name:'Sleep', key:'sleep' },
+    { icon:'🏃', name:'Exercise', key:'exercise' },
+    { icon:'🥗', name:'Nutrition', key:'nutrition' },
+    { icon:'🧘', name:'Stress', key:'stress' },
+    { icon:'🔬', name:'Biomarkers', key:'biomarkers' },
+  ];
+  const grid = document.getElementById('pillars-grid');
+  grid.innerHTML = pillars.map(p => {
+    const sc = s[p.key];
+    const cls = sc >= 75 ? 'excellent' : sc >= 55 ? 'good' : 'poor';
+    const ringBg = sc >= 75 ? '#b7e4c7' : sc >= 55 ? '#ffeaa7' : '#fab1a0';
+    const status = sc >= 75 ? '🟢 ดีมาก' : sc >= 55 ? '🟡 ปานกลาง' : sc >= 40 ? '🟠 ต้องปรับ' : '🔴 เร่งด่วน';
+    return `<div class="pillar-card ${cls}">
+      <div class="pillar-icon">${p.icon}</div>
+      <div class="pillar-name">${p.name}</div>
+      <div class="pillar-score-ring" style="background:${ringBg}">${sc}</div>
+      <div class="pillar-status">${status}</div>
+    </div>`;
+  }).join('');
+
+  // Archetype
+  const arch = state.archetype;
+  document.getElementById('d-arch-tag').textContent = arch.tag;
+  document.getElementById('d-arch-name').textContent = arch.name;
+  document.getElementById('d-arch-desc').textContent = arch.desc;
+
+  // Score ring
+  const pct = avg * 3.6;
+  document.getElementById('score-ring').style.setProperty('--pct', avg + '%');
+  document.getElementById('score-ring').style.background =
+    `conic-gradient(var(--green-main) ${pct}deg, var(--cream-dark) 0deg)`;
+  document.getElementById('d-score-val').textContent = avg;
+
+  // Actions
+  const sorted = Object.entries(s).sort((a,b) => a[1]-b[1]);
+  const actionMap = {
+    sleep: ['😴 นอนให้ได้ 7–8 ชั่วโมง เข้านอนก่อน 23:00 น.', '7–9 ชม.'],
+    exercise: ['🏃 ออกกำลังกาย Zone 2 อย่างน้อย 30 นาที (พูดได้แต่หายใจหนัก)', '30–45 นาที'],
+    nutrition: ['🥗 เพิ่มผักใบเขียวและโปรตีนคุณภาพสูงทุกมื้อหลัก', '—'],
+    stress: ['🧘 ทำ Box breathing 4-7-8 ก่อนนอน 5–10 นาที', '10 นาที'],
+    biomarkers: ['🔬 ดื่มน้ำให้ครบ 2 ลิตร / นัดตรวจเลือดประจำปี', '—'],
+  };
+  const top3 = sorted.slice(0,3);
+  const ac = document.getElementById('actions-container');
+  ac.innerHTML = top3.map((([key], i) => {
+    const num = ['🥇','🥈','🥉'][i];
+    const [text, time] = actionMap[key];
+    return `<div class="action-card">
+      <div class="action-badge">${i+1}</div>
+      <div class="action-text">${text}</div>
+      <div class="action-time">${time}</div>
+    </div>`;
+  })).join('');
+}
+
+function renderScores() {
+  const s = state.scores;
+  const pillars = [
+    { icon:'😴', name:'Sleep — การนอนหลับ', key:'sleep', impact:'±2 ปี' },
+    { icon:'🏃', name:'Exercise — ออกกำลังกาย', key:'exercise', impact:'±3 ปี' },
+    { icon:'🥗', name:'Nutrition — โภชนาการ', key:'nutrition', impact:'±2 ปี' },
+    { icon:'🧘', name:'Stress — ความเครียด', key:'stress', impact:'±2 ปี' },
+    { icon:'🔬', name:'Biomarkers — ผลเลือด', key:'biomarkers', impact:'±2 ปี' },
+  ];
+  const colors = { sleep:'#74b9ff', exercise:'#55efc4', nutrition:'#52b788', stress:'#a29bfe', biomarkers:'#fdcb6e' };
+  const grid = document.getElementById('scores-grid');
+  grid.innerHTML = pillars.map(p => {
+    const sc = s[p.key];
+    const label = sc>=75?'🟢 ดีมาก':sc>=55?'🟡 ปานกลาง':sc>=40?'🟠 ต้องปรับปรุง':'🔴 เร่งด่วน';
+    return `<div class="score-detail-card">
+      <div class="score-detail-header">
+        <span class="score-detail-icon">${p.icon}</span>
+        <div>
+          <div class="score-detail-name">${p.name}</div>
+          <div style="font-size:0.75rem;color:var(--ink-light)">${label}</div>
+        </div>
+        <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:600;color:${colors[p.key]}">${sc}</div>
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-bar" style="width:${sc}%;background:${colors[p.key]}"></div>
+      </div>
+      <div class="score-impact">
+        <span>Bio Age Impact: <strong>${p.impact}</strong></span>
+        <span>${sc}/100</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Priority list
+  const sorted = Object.entries(s).sort((a,b) => a[1]-b[1]);
+  const plist = document.getElementById('priority-list');
+  plist.innerHTML = sorted.map(([key, sc], i) => {
+    const names = {sleep:'😴 Sleep',exercise:'🏃 Exercise',nutrition:'🥗 Nutrition',stress:'🧘 Stress',biomarkers:'🔬 Biomarkers'};
+    const priority = i===0?'⚡ เร่งด่วนสูงสุด':i===1?'🔥 ควรปรับปรุง':i===2?'📌 ดูแลต่อเนื่อง':'🌟 รักษาระดับ';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--cream-dark)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--ink-light);width:20px">${i+1}</div>
+      <div style="flex:1;font-weight:600">${names[key]}</div>
+      <div style="font-size:0.8rem;color:var(--ink-light)">${priority}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--green-mid)">${sc}/100</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSupplements() {
+  const s = state.scores;
+  const avg = Object.values(s).reduce((a,b)=>a+b,0)/5;
+  const arch = state.archetype;
+
+  document.getElementById('supp-archetype-note').innerHTML =
+    `<strong>${arch.name}</strong> — Longevity Score ${Math.round(avg)}/100<br>
+    <span style="font-size:0.85rem;opacity:0.8">${avg>=70?'แนะนำ Tier 1 Foundation เป็นหลัก':avg>=50?'แนะนำ Tier 1 + บาง Tier 2 ตาม Pillar ที่อ่อน':'แนะนำ Tier 1 + Tier 2 Full stack เพื่อเร่งการฟื้นฟู'}</span>`;
+
+  const t1 = [
+    {name:'Omega-3 (EPA/DHA)',dose:'2–3 กรัม/วัน',reason:'ลด Inflammation, ปกป้อง Brain และ Cardiovascular system, รักษา Telomere length',note:'กินพร้อมอาหารมื้อหลักที่มีไขมัน'},
+    {name:'Vitamin D3 + K2',dose:'D3: 2,000–5,000 IU + K2: 100mcg',reason:'Immune function, Epigenetic protection, Bone density — 70%+ ของคนไทยขาด',note:'กินตอนเช้าพร้อมอาหาร'},
+    {name:'Magnesium Glycinate',dose:'300–400 มก./วัน',reason:'DNMT cofactor, Sleep quality, DNA repair, ลด Cortisol',note:'กินก่อนนอน 1–2 ชั่วโมง'},
+    {name:'B-Complex (Methylated)',dose:'ตามฉลาก — Methylated forms',reason:'One-carbon metabolism, Methylation support, Nerve function',note:'สำคัญมากสำหรับผู้มี MTHFR variant'},
+  ];
+
+  document.getElementById('tier1-supps').innerHTML = t1.map(s=>
+    `<div class="supp-card">
+      <div><div class="supp-name">${s.name}</div><div class="supp-reason">${s.reason}</div></div>
+      <div><div class="supp-dose">${s.dose}</div><div class="supp-note">${s.note}</div></div>
+    </div>`
+  ).join('');
+
+  let t2 = [];
+  if (s.exercise < 60) t2.push({name:'NMN / NR',dose:'250–500 มก./วัน',reason:'NAD+ precursor, กระตุ้น Mitochondrial biogenesis, เพิ่มพลังงานเซลล์',note:'เหมาะเมื่อ Exercise score ต่ำ หรืออายุ 40+',show:true});
+  t2.push({name:'Sulforaphane',dose:'10–30 มก./วัน',reason:'NRF2 pathway activation, ลด Oxidative demethylation, Anti-cancer properties',note:'จาก Broccoli sprout extract — มีฤทธิ์สูงกว่าบรอกโคลีโต 50–100x',show:true});
+  if (s.biomarkers < 65) t2.push({name:'Berberine',dose:'500 มก. 2x/วัน',reason:'mTOR regulation, Glucose control, Gut microbiome modulation — เรียก "Natural Metformin"',note:'เหมาะเมื่อ Glucose หรือ HbA1c ค่อนข้างสูง',show:true});
+  if (s.nutrition < 55) t2.push({name:'SAMe (S-adenosylmethionine)',dose:'400–800 มก./วัน',reason:'Direct methyl donor, สนับสนุน Methylation cycle โดยตรง',note:'เหมาะเมื่อ Nutrition score ต่ำ หรือกินผักน้อย',show:true});
+  t2.push({name:'Resveratrol + Pterostilbene',dose:'150–500 มก./วัน',reason:'SIRT1 activator, Chromatin stability, Anti-inflammatory',note:'กินพร้อมอาหารที่มีไขมัน เพิ่ม Bioavailability',show:true});
+
+  document.getElementById('tier2-supps').innerHTML = t2.filter(s=>s.show).map(s=>
+    `<div class="supp-card">
+      <div><div class="supp-name">${s.name}</div><div class="supp-reason">${s.reason}</div></div>
+      <div><div class="supp-dose">${s.dose}</div><div class="supp-note">${s.note}</div></div>
+    </div>`
+  ).join('');
+}
+
+function renderActionPlan() {
+  const s = state.scores;
+  const sorted = Object.entries(s).sort((a,b)=>a[1]-b[1]);
+  const actionMap = {
+    sleep:{text:'😴 นอนให้ได้ 7–8 ชั่วโมง เข้านอนก่อน 23:00 น. ตั้ง Alarm ปิดหน้าจอ 21:30',time:'7–9 ชั่วโมง'},
+    exercise:{text:'🏃 ออกกำลังกาย Zone 2 (พูดได้แต่หายใจหนัก) อย่างน้อย 30 นาทีวันนี้',time:'30–45 นาที'},
+    nutrition:{text:'🥗 กิน Omega-3 foods (ปลาทู/ไข่) + ผักใบเขียวอย่างน้อย 1 มื้อวันนี้',time:'—'},
+    stress:{text:'🧘 ทำ Box breathing 4-4-4-4 ก่อนนอน + ปิดโทรศัพท์ 1 ชั่วโมงก่อนนอน',time:'10–15 นาที'},
+    biomarkers:{text:'🔬 ดื่มน้ำให้ครบ 2 ลิตร / ทบทวนนัดตรวจสุขภาพประจำปีครั้งต่อไป',time:'—'},
+  };
+  const nums = ['🥇','🥈','🥉'];
+  document.getElementById('action-today').innerHTML = sorted.slice(0,3).map(([key], i)=>{
+    const a = actionMap[key];
+    return `<div class="action-card">
+      <div class="action-badge">${i+1}</div>
+      <div class="action-text">${a.text}</div>
+      <div class="action-time">${a.time}</div>
+    </div>`;
+  }).join('');
+
+  const days = [
+    {name:'จันทร์',ex:'Zone 2 Cardio 30 นาที',nut:'ไข่ + ผักใบเขียว',well:'สมาธิ 10 นาที'},
+    {name:'อังคาร',ex:'Resistance (Upper)',nut:'ปลาทู + Omega-3',well:'Box breathing'},
+    {name:'พุธ',ex:'Zone 2 Cardio 45 นาที',nut:'ขมิ้น + บรอกโคลี',well:'เดินธรรมชาติ'},
+    {name:'พฤหัส',ex:'Resistance (Lower)',nut:'ถั่ว + High fiber',well:'Social time'},
+    {name:'ศุกร์',ex:'Zone 2 30 นาที',nut:'Fermented foods',well:'Journaling'},
+    {name:'เสาร์',ex:'HIIT 20 นาที',nut:'IF 16:8',well:'Recovery + นอน'},
+    {name:'อาทิตย์',ex:'เดิน/โยคะ',nut:'ผักหลากสี',well:'วางแผนสัปดาห์'},
+  ];
+  document.getElementById('weekly-grid').innerHTML = days.map(d=>
+    `<div class="day-card">
+      <div class="day-name">${d.name}</div>
+      <div class="day-pill exercise">${d.ex}</div>
+      <div class="day-pill nutrition">${d.nut}</div>
+      <div class="day-pill wellness">${d.well}</div>
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN CALCULATION
+// ═══════════════════════════════════════════════════════
+function runCalculation() {
+  document.getElementById('step-6').style.display = 'none';
+  document.getElementById('q-nav').style.display = 'none';
+  const calc = document.getElementById('calculating');
+  calc.classList.add('show');
+
+  setTimeout(() => {
+    calcScores();
+    calcBioAge();
+    calcArchetype();
+    state.assessed = true;
+
+    renderDashboard();
+    renderScores();
+    renderSupplements();
+    renderActionPlan();
+    saveAssessmentRecord();
+    showAIButtonAfterAssess();
+
+    calc.classList.remove('show');
+    showSection('dashboard');
+  }, 1800);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+function init() {
+  // Render empty pillars on dashboard
+  const pillars = [
+    {icon:'😴',name:'Sleep'},
+    {icon:'🏃',name:'Exercise'},
+    {icon:'🥗',name:'Nutrition'},
+    {icon:'🧘',name:'Stress'},
+    {icon:'🔬',name:'Biomarkers'},
+  ];
+  document.getElementById('pillars-grid').innerHTML = pillars.map(p=>
+    `<div class="pillar-card">
+      <div class="pillar-icon">${p.icon}</div>
+      <div class="pillar-name">${p.name}</div>
+      <div class="pillar-score-ring" style="background:var(--cream-dark);color:var(--ink-light)">—</div>
+      <div class="pillar-status" style="color:var(--ink-light)">ยังไม่ประเมิน</div>
+    </div>`
+  ).join('');
+}
+
+
+// ═══════════════════════════════════════════════════════
+// DATABASE — Google Sheets Integration
+// ═══════════════════════════════════════════════════════
+let DB_URL = 'https://script.google.com/macros/s/AKfycbwKtkncZwrKG0r93D8s7qSMmVJFc0kAC9JBeghLMZz44ZOqQLfv2-ILErLFAfrTrtZA/exec';
+let localAssessments = JSON.parse(localStorage.getItem('longevity_assessments') || '[]');
+let localFastingLogs = JSON.parse(localStorage.getItem('longevity_fasting_logs') || '[]');
+
+function saveDbUrl() {
+  // URL is hardcoded — no action needed
+  showToast('✅ ระบบเชื่อมต่ออัตโนมัติแล้ว', 'success');
+}
+
+async function pingSheet() {
+  try {
+    const r = await fetch(DB_URL + '?action=ping', { method: 'GET' });
+    const d = await r.json();
+    return d.status === 'ok';
+  } catch { return false; }
+}
+
+function setDbStatus(cls, text) {
+  const el = document.getElementById('db-status');
+  if (el) { el.className = 'db-status ' + cls; el.textContent = text; }
+  // Update header indicator
+  const dot = document.getElementById('db-dot');
+  const txt = document.getElementById('db-status-text');
+  if (dot && txt) {
+    const colors = { connected: '#52b788', disconnected: '#e07b54', syncing: '#c9a84c' };
+    dot.style.background = colors[cls] || '#c9a84c';
+    txt.textContent = cls === 'connected' ? '● Live Database' : cls === 'syncing' ? '● Connecting...' : '● Offline';
+  }
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Save assessment to local + try sync
+function saveAssessmentRecord() {
+  const record = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString('th-TH'),
+    name: state.data.name,
+    age: state.data.age,
+    gender: state.data.gender,
+    weight: state.data.weight,
+    height: state.data.height,
+    bmi: Math.round(state.data.weight / (state.data.height/100)**2 * 10) / 10,
+    sleep_score: state.scores.sleep,
+    exercise_score: state.scores.exercise,
+    nutrition_score: state.scores.nutrition,
+    stress_score: state.scores.stress,
+    biomarker_score: state.scores.biomarkers,
+    avg_score: Math.round(Object.values(state.scores).reduce((a,b)=>a+b,0)/5),
+    biological_age: state.bioAge,
+    chronological_age: state.data.age,
+    age_diff: Math.round((state.bioAge - state.data.age)*10)/10,
+    archetype: state.archetype.name || '',
+    hba1c: state.data.hba1c,
+    vitamin_d: state.data.vitd,
+    glucose: state.data.glucose,
+    synced: false,
+  };
+  localAssessments.push(record);
+  localStorage.setItem('longevity_assessments', JSON.stringify(localAssessments));
+  renderHistoryStats();
+  renderAssessmentTable();
+  if (DB_URL) syncToSheets(record, 'assessment');
+}
+
+// Save fasting log
+function saveFastingLog(protocolHours, elapsedSecs, milestonesReached) {
+  const record = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString('th-TH'),
+    user_name: state.data.name || 'User',
+    protocol_hours: protocolHours,
+    actual_hours: Math.round(elapsedSecs / 3600 * 10) / 10,
+    actual_minutes: Math.round(elapsedSecs / 60),
+    completed: elapsedSecs >= protocolHours * 3600,
+    completion_pct: Math.min(100, Math.round(elapsedSecs / (protocolHours * 3600) * 100)),
+    milestones: milestonesReached,
+    synced: false,
+  };
+  localFastingLogs.push(record);
+  localStorage.setItem('longevity_fasting_logs', JSON.stringify(localFastingLogs));
+  renderFastingTable();
+  if (DB_URL) syncToSheets(record, 'fasting');
+}
+
+// Sync single record to Google Sheets
+async function syncToSheets(record, type) {
+  if (!DB_URL) return;
+  const fab = document.getElementById('sync-fab');
+  fab.classList.add('spinning');
+  try {
+    const response = await fetch(DB_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: type === 'assessment' ? 'saveAssessment' : 'saveFasting', data: record }),
+    });
+    const result = await response.json();
+    if (result.status === 'ok') {
+      record.synced = true;
+      localStorage.setItem(type === 'assessment' ? 'longevity_assessments' : 'longevity_fasting_logs',
+        JSON.stringify(type === 'assessment' ? localAssessments : localFastingLogs));
+      setDbStatus('connected', '● Synced ✓');
+      showToast('☁️ บันทึกลง Google Sheets แล้ว', 'success');
+    }
+  } catch(e) {
+    showToast('⚠️ Sync ไม่สำเร็จ — บันทึกใน Local แล้ว', 'error');
+  } finally {
+    fab.classList.remove('spinning');
+  }
+}
+
+// Manual sync all unsynced records
+async function manualSync() {
+  if (!DB_URL) {
+    showToast('กรุณาตั้งค่า Google Sheets URL ก่อนครับ', 'error');
+    showSection('history');
+    return;
+  }
+  const fab = document.getElementById('sync-fab');
+  fab.classList.add('spinning');
+  const unsynced = localAssessments.filter(r => !r.synced);
+  const unfasted = localFastingLogs.filter(r => !r.synced);
+  let count = 0;
+  for (const r of unsynced) { await syncToSheets(r, 'assessment'); count++; }
+  for (const r of unfasted) { await syncToSheets(r, 'fasting'); count++; }
+  fab.classList.remove('spinning');
+  if (count === 0) showToast('✅ ข้อมูลทั้งหมด Sync แล้ว', 'success');
+  else showToast(`☁️ Synced ${count} รายการ`, 'success');
+}
+
+// Load history from Google Sheets
+async function loadHistory() {
+  if (!DB_URL) { showToast('กรุณาตั้งค่า URL ก่อน', 'error'); return; }
+  showToast('กำลังโหลดข้อมูล...', 'success');
+  try {
+    const r = await fetch(DB_URL + '?action=getAll&name=' + encodeURIComponent(state.data.name || ''));
+    const d = await r.json();
+    if (d.assessments) {
+      localAssessments = d.assessments;
+      localStorage.setItem('longevity_assessments', JSON.stringify(localAssessments));
+    }
+    if (d.fasting) {
+      localFastingLogs = d.fasting;
+      localStorage.setItem('longevity_fasting_logs', JSON.stringify(localFastingLogs));
+    }
+    renderHistoryStats();
+    renderAssessmentTable();
+    renderFastingTable();
+    showToast('✅ โหลดข้อมูลสำเร็จ', 'success');
+  } catch { showToast('❌ โหลดไม่สำเร็จ', 'error'); }
+}
+
+function renderHistoryStats() {
+  document.getElementById('hist-sessions').textContent = localAssessments.length;
+  if (localAssessments.length > 0) {
+    const best = Math.max(...localAssessments.map(r => r.avg_score));
+    document.getElementById('hist-best-score').textContent = best;
+    const last = localAssessments[localAssessments.length - 1];
+    const diff = last.age_diff;
+    document.getElementById('hist-bio-trend').textContent = diff > 0 ? '+' + diff + 'y' : diff + 'y';
+    document.getElementById('hist-bio-trend').style.color = diff > 0 ? 'var(--warn)' : 'var(--green-main)';
+  }
+  document.getElementById('hist-fasting-count').textContent = localFastingLogs.length;
+}
+
+function renderAssessmentTable() {
+  const container = document.getElementById('assessment-history-table');
+  if (localAssessments.length === 0) {
+    container.innerHTML = '<div class="history-empty"><div style="font-size:2rem;margin-bottom:8px;">📊</div>ยังไม่มีข้อมูล — ทำ Assessment แล้ว Sync</div>';
+    return;
+  }
+  const rows = [...localAssessments].reverse().slice(0, 20).map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.age} ปี | ${r.gender} | BMI ${r.bmi}</td>
+      <td><strong style="color:var(--green-mid)">${r.avg_score}/100</strong></td>
+      <td>${r.biological_age} ปี</td>
+      <td style="color:${r.age_diff > 0 ? 'var(--warn)' : 'var(--green-main)'}">${r.age_diff > 0 ? '+' : ''}${r.age_diff} ปี</td>
+      <td style="font-size:0.75rem">${r.archetype.replace('The ','')}</td>
+      <td style="font-size:0.7rem;color:${r.synced ? 'var(--green-main)' : 'var(--warn)'}">${r.synced ? '☁️ Synced' : '📱 Local'}</td>
+    </tr>`).join('');
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="history-table">
+        <thead><tr>
+          <th>วันที่</th><th>ชื่อ</th><th>ข้อมูล</th><th>Score</th>
+          <th>Bio Age</th><th>ผลต่าง</th><th>Archetype</th><th>Status</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderFastingTable() {
+  const container = document.getElementById('fasting-history-table');
+  if (localFastingLogs.length === 0) {
+    container.innerHTML = '<div class="history-empty"><div style="font-size:2rem;margin-bottom:8px;">⏱️</div>ยังไม่มี Fasting logs</div>';
+    return;
+  }
+  const rows = [...localFastingLogs].reverse().slice(0, 15).map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td>${r.protocol_hours}:${24 - r.protocol_hours}</td>
+      <td><strong>${r.actual_hours} ชม.</strong></td>
+      <td>
+        <div style="background:var(--cream-dark);border-radius:4px;height:8px;width:100px;overflow:hidden;">
+          <div style="background:${r.completion_pct>=100?'var(--green-main)':'var(--gold)'};height:100%;width:${r.completion_pct}%;border-radius:4px;"></div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--ink-light);margin-top:2px">${r.completion_pct}%</div>
+      </td>
+      <td>${r.completed ? '✅ ครบ' : '⚠️ ไม่ครบ'}</td>
+      <td style="font-size:0.7rem;color:${r.synced ? 'var(--green-main)' : 'var(--warn)'}">${r.synced ? '☁️ Synced' : '📱 Local'}</td>
+    </tr>`).join('');
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="history-table">
+        <thead><tr><th>วันที่</th><th>Protocol</th><th>ระยะเวลา</th><th>Progress</th><th>ผล</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function exportLocalCSV() {
+  if (localAssessments.length === 0) { showToast('ยังไม่มีข้อมูล', 'error'); return; }
+  const headers = ['Date','Name','Age','Gender','BMI','Sleep','Exercise','Nutrition','Stress','Biomarkers','Avg Score','Bio Age','Age Diff','Archetype'];
+  const rows = localAssessments.map(r => [
+    r.date, r.name, r.age, r.gender, r.bmi,
+    r.sleep_score, r.exercise_score, r.nutrition_score, r.stress_score, r.biomarker_score,
+    r.avg_score, r.biological_age, r.age_diff, r.archetype
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'longevity_ai_data_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('⬇️ Export CSV สำเร็จ', 'success');
+}
+
+// Init DB on load
+function initDB() {
+  populateReturningUserSelect();
+  // Auto-connect silently on load
+  setDbStatus('syncing', '● กำลังเชื่อมต่อ...');
+  pingSheet().then(ok => {
+    if (ok) {
+      setDbStatus('connected', '● เชื่อมต่อแล้ว');
+    } else {
+      setDbStatus('disconnected', '● Offline mode');
+    }
+  });
+  renderHistoryStats();
+  renderAssessmentTable();
+  renderFastingTable();
+}
+
+
+// ═══════════════════════════════════════════════════════
+// PROMPT BRIDGE — No API Key Required
+// ═══════════════════════════════════════════════════════
+let pbMode     = 'analyze';
+let pbProvider = 'chatgpt';
+
+const PROVIDER_URLS = {
+  chatgpt:    'https://chatgpt.com/',
+  claude:     'https://claude.ai/new',
+  gemini:     'https://gemini.google.com/',
+  grok:       'https://grok.com/',
+  notebooklm: 'https://notebooklm.google.com/notebook/fffe6543-20d4-4127-b40b-80228d8443e0',
+  other:      null,
+};
+const PROVIDER_NAMES = {
+  chatgpt:'ChatGPT', claude:'Claude', gemini:'Gemini',
+  grok:'Grok', notebooklm:'NotebookLM', other:'คัดลอก'
+};
+
+function buildPrompt(mode, customQ) {
+  const d = state.data;
+  const s = state.scores;
+  const assessed = state.assessed;
+  const avg = assessed ? Math.round(Object.values(s).reduce((a,b)=>a+b,0)/5) : null;
+  const arch = state.archetype?.name || '';
+
+  const userBlock = assessed ? `
+ข้อมูลสุขภาพของฉัน:
+- อายุ: ${d.age} ปี | เพศ: ${d.gender} | BMI: ${Math.round(d.weight/(d.height/100)**2*10)/10}
+- Biological Age (ประมาณ): ${state.bioAge} ปี (${state.bioAge > d.age ? '+' : ''}${Math.round((state.bioAge-d.age)*10)/10} ปี จากอายุจริง)
+- Longevity Score: ${avg}/100
+- Eating Archetype: ${arch}
+- Sleep Score: ${s.sleep}/100
+- Exercise Score: ${s.exercise}/100
+- Nutrition Score: ${s.nutrition}/100
+- Stress Score: ${s.stress}/100
+- Biomarker Score: ${s.biomarkers}/100
+- HbA1c: ${d.hba1c}% | Vitamin D: ${d.vitd} ng/mL | Fasting Glucose: ${d.glucose} mg/dL
+- Intermittent Fasting: ${d.fasting}
+` : '(ยังไม่ได้ทำ Assessment — ใช้ข้อมูลทั่วไป)';
+
+  const historyBlock = localAssessments.length > 1 ? `
+ประวัติการประเมิน: ${localAssessments.length} ครั้ง
+Score ครั้งก่อน: ${localAssessments[localAssessments.length-2]?.avg_score}/100
+Score ล่าสุด: ${localAssessments[localAssessments.length-1]?.avg_score}/100
+` : '';
+
+  const fastingBlock = (() => {
+    const first = document.getElementById('meal-first')?.value;
+    const last  = document.getElementById('meal-last')?.value;
+    if (first && last) return `
+ตารางอาหารปัจจุบัน: มื้อแรก ${first} น. | มื้อสุดท้าย ${last} น.`;
+    return '';
+  })();
+
+  const roleMap = {
+    analyze:  'คุณคือ Longevity Medicine Expert และ Anti-aging Specialist ที่เชี่ยวชาญ 12 Hallmarks of Aging, Epigenetics, Telomere biology และ Preventive medicine',
+    fasting:  'คุณคือ Intermittent Fasting Coach และ Metabolic Health Expert ที่เชี่ยวชาญ Autophagy, Ketosis, Circadian rhythm และ Time-restricted eating',
+    progress: 'คุณคือ Health Analytics Expert ที่เชี่ยวชาญการวิเคราะห์ Longitudinal health data, Trend analysis และ Personalized health optimization',
+    chat:     'คุณคือ Longevity Science Educator ที่อธิบายวิทยาศาสตร์ Anti-aging ได้อย่างเข้าใจง่าย อ้างอิงงานวิจัยจาก David Sinclair, Peter Attia, Elizabeth Blackburn',
+  };
+
+  const taskMap = {
+    analyze: assessed
+      ? `วิเคราะห์ผล Longevity Assessment ของฉันอย่างละเอียด:
+1. อธิบายว่าทำไม Biological Age ถึงเป็น ${state.bioAge} ปี
+2. ระบุ Top 3 Pillars ที่ต้องปรับปรุงเร่งด่วนและเหตุผล
+3. แผนปฏิบัติ 30 วันแรกที่ทำได้จริง
+4. Supplement ที่แนะนำตาม Archetype "${arch}"
+5. ถ้าทำตามแผน Biological Age จะลดลงได้แค่ไหนใน 3 เดือน`
+      : 'อธิบายหลักการ Biological Age และ 5 Pillars ของ Longevity (Sleep, Exercise, Nutrition, Stress, Biomarkers) พร้อมวิธีเริ่มต้นดูแลสุขภาพแบบ Anti-aging',
+    fasting: `ให้คำแนะนำ Intermittent Fasting แบบ Personalized:
+1. Protocol ที่เหมาะกับไลฟ์สไตล์ของฉัน${fastingBlock}
+2. อธิบายกระบวนการ Autophagy และ Metabolic switch ที่เกิดขึ้น
+3. วิธีจัดการความหิวและ Side effects ช่วงแรก
+4. อาหารที่ควรกินใน Eating window เพื่อ Maximize ผล Longevity
+5. Warning signs ที่ต้องหยุด IF`,
+    progress: localAssessments.length > 1
+      ? `วิเคราะห์ Progress สุขภาพของฉัน:
+1. Score เปลี่ยนไปอย่างไร และอะไรทำให้เปลี่ยน
+2. Trend ที่น่าเป็นห่วงและโอกาสที่ดี
+3. Predict Bio Age ใน 6 เดือนถ้าทำตาม Protocol ปัจจุบัน
+4. สิ่งที่ควร Focus ใน 30 วันต่อไป`
+      : 'แนะนำวิธีติดตาม Health progress อย่างมีประสิทธิภาพ และ Biomarkers สำคัญที่ควรตรวจทุก 3–6 เดือน',
+    chat: customQ || 'อธิบายหลักการ Longevity science ที่สำคัญที่สุด 5 ข้อที่ทุกคนควรรู้ พร้อมวิธีนำไปปฏิบัติในชีวิตประจำวัน',
+  };
+
+  const customBlock = (mode !== 'chat' && customQ)
+    ? `
+คำถามเพิ่มเติมจากฉัน: ${customQ}` : '';
+
+  const nbSources = (window._pbProvider === 'notebooklm')
+    ? `
+
+--- คำสั่งสำหรับ NotebookLM ---
+กรุณาตอบโดยอ้างอิง Sources ใน Notebook นี้เป็นหลัก โดยเฉพาะ:
+• David Sinclair — Lifespan, Information Theory of Aging, NAD+/Sirtuins/mTOR
+• Peter Attia — Outlive, Medicine 3.0, Zone 2 Cardio, VO2 Max, Centenarian Decathlon
+• Elizabeth Blackburn — The Telomere Effect, Telomerase, Stress-Telomere connection
+• Carlos López-Otín — 12 Hallmarks of Aging (Cell 2023), Epigenetic alterations
+• Mark Mattson — IF & BDNF (NEJM 2019), Metabolic switching, Autophagy
+• Yoshinori Ohsumi — Autophagy mechanism (Nobel Prize 2016)
+• Salk Institute — Brain aging epigenetic atlas (Cell 2026), Methylation
+
+สำหรับทุกประเด็นที่ตอบ: ระบุ Source ที่อ้างอิงชัดเจน
+ถ้าไม่มีข้อมูลใน Sources ให้บอกตรงๆ อย่าสรุปเอง` : '';
+
+  const footer = `
+
+กรุณาตอบเป็นภาษาไทย ให้ข้อมูลที่ Evidence-based และ Actionable พร้อมระบุว่าควรปรึกษาแพทย์เรื่องใด${nbSources}`;
+
+  return `${roleMap[mode]}
+
+---
+${userBlock}${historyBlock}
+---
+
+โจทย์:
+${taskMap[mode]}${customBlock}${footer}`;
+}
+
+function renderPromptBridge() {
+  const box = document.getElementById('pb-prompt-box');
+  if (!box) return;
+  const customQ = document.getElementById('pb-custom-q')?.value || '';
+  const prompt  = buildPrompt(pbMode, customQ);
+
+  const isNB = pbProvider === 'notebooklm';
+  box.innerHTML = `
+    <div>
+      <div class="pb-prompt-label">📋 Prompt สำหรับ ${PROVIDER_NAMES[pbProvider]}${isNB ? ' — Knowledge-Grounded' : ''}</div>
+      <div class="pb-prompt-text" id="pb-prompt-content">${prompt}</div>
+    </div>
+    <div style="font-size:0.75rem;color:rgba(183,228,199,0.45);line-height:1.6;padding:4px 0;">
+      ${isNB
+        ? '📓 Prompt นี้มีคำสั่งให้ NotebookLM อ้างอิง Sources จากงานวิจัย Longevity โดยตรง'
+        : `💡 Prompt นี้มีข้อมูลสุขภาพของคุณครบแล้ว — Copy แล้ว Paste ใน ${PROVIDER_NAMES[pbProvider]} ได้เลย`}
+    </div>`;
+
+  // Show/hide NotebookLM banner
+  const nbBanner = document.getElementById('nb-banner');
+  if (nbBanner) nbBanner.style.display = isNB ? 'block' : 'none';
+}
+
+function setPBMode(mode) {
+  pbMode = mode;
+  document.querySelectorAll('.pb-mode-select .ai-mode-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['analyze','fasting','progress','chat'][i] === mode);
+  });
+  const titles = {
+    analyze:'🔬 วิเคราะห์ผล Assessment', fasting:'⏱️ Fasting Coach',
+    progress:'📈 Progress Analysis', chat:'💬 ถามทั่วไป'
+  };
+  document.getElementById('ai-panel-title-text').textContent = titles[mode];
+  renderPromptBridge();
+}
+
+function setPBProvider(provider, btn) {
+  pbProvider = provider;
+  window._pbProvider = provider; // for buildPrompt access
+  document.querySelectorAll('.pb-provider-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const label = document.getElementById('pb-open-label');
+  if (label) label.textContent = provider === 'other' ? 'คัดลอกแล้ว' : `เปิด ${PROVIDER_NAMES[provider]}`;
+  const tip = document.getElementById('pb-tip');
+  if (tip) {
+    if (provider === 'notebooklm') {
+      tip.textContent = 'กด "Copy Prompt + เปิด" เพื่อ Copy Prompt และเปิด Knowledge Base พร้อมกัน';
+    } else if (provider === 'other') {
+      tip.textContent = 'Copy Prompt แล้วนำไปใช้กับ AI ที่คุณต้องการ';
+    } else {
+      tip.textContent = `Copy แล้ว Paste ใน ${PROVIDER_NAMES[provider]} → รับ Personalized advice ได้เลย`;
+    }
+  }
+  renderPromptBridge();
+}
+
+function copyPrompt() {
+  const content = document.getElementById('pb-prompt-content');
+  if (!content) return;
+  navigator.clipboard.writeText(content.textContent).then(() => {
+    const btn = document.getElementById('pb-copy-btn');
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    showToast('📋 Copy Prompt แล้ว — Paste ใน AI ได้เลยครับ', 'success');
+    setTimeout(() => {
+      btn.innerHTML = '📋 Copy Prompt';
+      btn.classList.remove('copied');
+    }, 2500);
+  }).catch(() => {
+    // Fallback
+    const el = document.createElement('textarea');
+    el.value = content.textContent;
+    document.body.appendChild(el);
+    el.select(); document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('📋 Copy แล้วครับ', 'success');
+  });
+}
+
+function openInProvider() {
+  if (pbProvider === 'other') { copyPrompt(); return; }
+  copyPrompt();
+  setTimeout(() => {
+    window.open(PROVIDER_URLS[pbProvider], '_blank');
+    showToast(`🔗 เปิด ${PROVIDER_NAMES[pbProvider]} แล้ว — Paste Prompt ได้เลยครับ`, 'success');
+  }, 400);
+}
+
+function openAI(mode) {
+  pbMode = mode || 'analyze';
+  document.getElementById('ai-panel').classList.add('open');
+  document.getElementById('ai-overlay').classList.add('show');
+  setPBMode(pbMode);
+}
+
+function closeAI() {
+  document.getElementById('ai-panel').classList.remove('open');
+  document.getElementById('ai-overlay').classList.remove('show');
+}
+
+// Legacy stubs — prevent errors
+function setAIMode(m) { setPBMode(m); }
+function sendAIMessage() {}
+function callClaude() {}
+
+
+function openNotebookDirect() {
+  window.open('https://notebooklm.google.com/notebook/fffe6543-20d4-4127-b40b-80228d8443e0', '_blank');
+  showToast('📓 เปิด Longevity Knowledge Base แล้วครับ', 'success');
+}
+
+function copyAndOpenNotebook() {
+  copyPrompt();
+  setTimeout(() => {
+    window.open('https://notebooklm.google.com/notebook/fffe6543-20d4-4127-b40b-80228d8443e0', '_blank');
+    showToast('📋 Copy Prompt แล้ว + เปิด NotebookLM — Paste ได้เลยครับ', 'success');
+  }, 500);
+}
+
+// Show AI button — called directly after renderDashboard in runCalculation
+function showAIButtonAfterAssess() {
+  const btn = document.getElementById('ai-analyze-btn');
+  if (btn && state.assessed) btn.style.display = 'inline-flex';
+}
+
+// ─── INIT ───
+init();
+initDB();
+</script>
+
+<!-- AI Overlay -->
+<div class="ai-overlay" id="ai-overlay" onclick="closeAI()"></div>
+
+<!-- AI Panel — Prompt Bridge -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-panel-header">
+    <div class="ai-panel-title">🧬 <span id="ai-panel-title-text">Longevity Prompt Builder</span></div>
+    <button class="ai-panel-close" onclick="closeAI()">✕</button>
+  </div>
+
+  <!-- Mode selector -->
+  <div class="pb-mode-select">
+    <button class="ai-mode-btn active" onclick="setPBMode('analyze')">🔬 วิเคราะห์ผล</button>
+    <button class="ai-mode-btn" onclick="setPBMode('fasting')">⏱️ Fasting</button>
+    <button class="ai-mode-btn" onclick="setPBMode('progress')">📈 Progress</button>
+    <button class="ai-mode-btn" onclick="setPBMode('chat')">💬 ถามทั่วไป</button>
+  </div>
+
+  <!-- Provider selector -->
+  <div class="pb-provider-row">
+    <span style="font-size:0.72rem;color:rgba(183,228,199,0.5);align-self:center;font-family:'JetBrains Mono',monospace;">เปิดใน:</span>
+    <button class="pb-provider-btn active" onclick="setPBProvider('chatgpt',this)">🤖 ChatGPT</button>
+    <button class="pb-provider-btn" onclick="setPBProvider('claude',this)">🧠 Claude</button>
+    <button class="pb-provider-btn" onclick="setPBProvider('gemini',this)">✨ Gemini</button>
+    <button class="pb-provider-btn" onclick="setPBProvider('grok',this)">⚡ Grok</button>
+    <button class="pb-provider-btn" onclick="setPBProvider('notebooklm',this)">📓 NotebookLM</button>
+    <button class="pb-provider-btn" onclick="setPBProvider('other',this)">📋 Copy</button>
+  </div>
+
+  <!-- Prompt display -->
+  <div class="pb-prompt-box" id="pb-prompt-box">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Custom question input -->
+  <div style="padding:0 16px 8px;flex-shrink:0;">
+    <input id="pb-custom-q" type="text" placeholder="เพิ่มคำถามของคุณ (ไม่จำเป็น)..."
+      style="width:100%;padding:9px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;"
+      oninput="renderPromptBridge()" placeholder="เพิ่มคำถามพิเศษ เช่น แนะนำอาหารไทยที่เหมาะกับฉัน">
+  </div>
+
+  <!-- Action buttons -->
+  <div class="pb-action-row">
+    <button class="pb-copy-btn" id="pb-copy-btn" onclick="copyPrompt()">
+      📋 Copy Prompt
+    </button>
+    <button class="pb-open-btn" id="pb-open-btn" onclick="openInProvider()">
+      🔗 <span id="pb-open-label">เปิด ChatGPT</span>
+    </button>
+  </div>
+  <div class="pb-tip" id="pb-tip">Copy แล้ว Paste ใน ChatGPT → รับคำตอบแบบ Personalized ได้เลย</div>
+
+  <!-- NotebookLM Knowledge Banner (hidden by default) -->
+  <div id="nb-banner" style="display:none;padding:0 16px 12px;flex-shrink:0;">
+    <div style="background:linear-gradient(135deg,rgba(26,71,49,0.9),rgba(13,43,30,0.95));border:1px solid rgba(82,183,136,0.3);border-radius:12px;padding:16px 18px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--gold);letter-spacing:0.12em;margin-bottom:8px;">📓 LONGEVITY KNOWLEDGE BASE</div>
+      <div style="font-size:0.82rem;color:var(--green-pale);line-height:1.7;margin-bottom:12px;">
+        Notebook นี้รวบรวมงานวิจัยและหนังสือ Longevity ที่คัดสรรแล้ว — AI จะตอบโดยอ้างอิง Sources จริง พร้อม Citation
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="openNotebookDirect()" style="background:var(--green-main);border:none;color:var(--white);padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;">
+          📓 เปิด Knowledge Base
+        </button>
+        <button onclick="copyAndOpenNotebook()" style="background:var(--gold);border:none;color:var(--green-deep);padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;">
+          📋 Copy Prompt + เปิด
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
